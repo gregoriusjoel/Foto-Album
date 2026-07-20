@@ -15,6 +15,20 @@ interface EventOg {
   thumbnail_url?: string | null;
 }
 
+/** Fetch an image from any URL and return a base64 data-URI */
+async function fetchImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const mime = res.headers.get('content-type') ?? 'image/webp';
+    const b64  = Buffer.from(buf).toString('base64');
+    return `data:${mime};base64,${b64}`;
+  } catch {
+    return null;
+  }
+}
+
 export default async function Image({
   params,
 }: {
@@ -35,9 +49,11 @@ export default async function Image({
     // silently fail — use fallback
   }
 
-  const bannerUrl = event?.banner_photos?.[0] ?? event?.thumbnail_url ?? null;
-  const title     = event?.title ?? 'FotoAlbum';
-  const venue     = event?.venue ?? null;
+  const rawBannerUrl = event?.banner_photos?.[0] ?? event?.thumbnail_url ?? null;
+  const bannerSrc    = rawBannerUrl ? await fetchImageAsDataUrl(rawBannerUrl) : null;
+  const title        = event?.title ?? 'FotoAlbum';
+  const venue        = event?.venue ?? null;
+
 
   return new ImageResponse(
     (
@@ -52,10 +68,10 @@ export default async function Image({
         }}
       >
         {/* ── Banner photo ── */}
-        {bannerUrl ? (
+        {bannerSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={bannerUrl}
+            src={bannerSrc}
             alt={title}
             style={{
               position: 'absolute',
