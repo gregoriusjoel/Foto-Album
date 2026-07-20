@@ -1,11 +1,14 @@
 import axios from 'axios';
 
 const getApiUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl) {
+    return envUrl.endsWith('/api/v1') ? envUrl : `${envUrl.replace(/\/$/, '')}/api/v1`;
+  }
   if (typeof window !== 'undefined') {
-    // Relative URLs in client environment use Next.js rewrites to reverse proxy to backend
     return '/api/v1';
   }
-  return process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+  return 'http://localhost:8000/api/v1';
 };
 
 // ── Public (guest) client ──────────────────────────────────────
