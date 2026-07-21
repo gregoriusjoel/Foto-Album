@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
@@ -10,6 +11,11 @@ export const metadata: Metadata = {
   description:
     'FotoAlbum is a collaborative event photo platform where every guest contributes photos into one shared album, simply by scanning a QR code.',
   keywords: ['photo album', 'event photos', 'collaborative album', 'QR code photos', 'wedding photos'],
+  icons: {
+    icon: '/logo-satu-album.png',
+    shortcut: '/logo-satu-album.png',
+    apple: '/logo-satu-album.png',
+  },
   openGraph: {
     type: 'website',
     siteName: 'FotoAlbum',
