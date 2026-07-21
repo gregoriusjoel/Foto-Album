@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'FotoAlbum',
     title: 'FotoAlbum — Capture Together. Save Forever.',
-    description: 'Collaborative event photo albums. No login required for guests.',
+    description: 'Collaborative event photo albums.',
   },
   robots: { index: true, follow: true },
 };

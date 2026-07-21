@@ -35,10 +35,6 @@ export default function HomePage() {
         }} />
 
         <div className="container animate-fadeIn">
-          <div className="badge badge-brand" style={{ marginBottom: '1.5rem', fontSize: '0.8125rem' }}>
-            <CheckCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.3rem' }} /> No login required for guests
-          </div>
-
           <h1 style={{ marginBottom: '1.5rem', maxWidth: '780px', margin: '0 auto 1.5rem' }}>
             Every photo,{' '}
             <span className="gradient-text">one shared album</span>
