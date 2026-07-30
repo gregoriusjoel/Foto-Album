@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import QRCode from 'react-qr-code';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Camera, Users, Image, Download, Share2,
   CheckCircle, XCircle, Archive, Edit, Trash2, Copy,
-  Loader2, ExternalLink, MapPin, Calendar, Globe, Lock,
+  Loader2, ExternalLink, MapPin, Calendar, Globe, Lock, Play, AlertTriangle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
@@ -26,6 +27,7 @@ export default function EventDetailPage() {
   const [downloadJob, setDownloadJob] = useState<DownloadJob | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -57,6 +59,33 @@ export default function EventDetailPage() {
     } catch {
       toast.error(`Failed to ${action} event.`);
     } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const startEvent = async () => {
+    setActionLoading('start');
+    try {
+      await adminApi.post(`/admin/events/${uuid}/start`);
+      const res = await adminApi.get<{ data: Event }>(`/admin/events/${uuid}`);
+      setEvent(res.data.data);
+      toast.success('Event started! It is now live.');
+    } catch {
+      toast.error('Failed to start event.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setActionLoading('delete');
+    try {
+      await adminApi.delete(`/admin/events/${uuid}`);
+      toast.success('Event permanently deleted.');
+      setShowDeleteModal(false);
+      router.push('/events');
+    } catch {
+      toast.error('Failed to delete event.');
       setActionLoading(null);
     }
   };
@@ -125,7 +154,7 @@ export default function EventDetailPage() {
 
   if (!event) return null;
 
-  const { label, className } = getEventStatusBadge(event.status);
+  const { label, className } = getEventStatusBadge(event.status, event.has_started);
   const joinUrl = event.join_url ?? `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${event.slug}`;
 
   return (
@@ -171,6 +200,12 @@ export default function EventDetailPage() {
               Publish
             </button>
           )}
+          {event.status === 'published' && !event.has_started && (
+            <button className="btn btn-primary btn-sm" onClick={startEvent} disabled={!!actionLoading}>
+              {actionLoading === 'start' ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Play size={14} />}
+              Start Now
+            </button>
+          )}
           {event.status === 'published' && (
             <button className="btn btn-danger btn-sm" onClick={() => changeStatus('close')} disabled={!!actionLoading}>
               {actionLoading === 'close' ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : <XCircle size={14} />}
@@ -191,6 +226,15 @@ export default function EventDetailPage() {
             {isDownloading
               ? <><Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> Preparing…</>
               : <><Download size={14} /> Download ZIP</>}
+          </button>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={!!actionLoading}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+          >
+            {actionLoading === 'delete' ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Trash2 size={14} />}
+            Delete Event
           </button>
         </div>
       </div>
@@ -336,6 +380,87 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Custom Delete Confirmation Modal ── */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div style={{
+            position: 'fixed', inset: 0,
+            backgroundColor: 'rgba(9, 9, 11, 0.85)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1.5rem',
+          }}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              style={{
+                width: '100%', maxWidth: 440,
+                backgroundColor: '#18181b',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 16,
+                padding: '2rem',
+                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.5)',
+                display: 'flex', flexDirection: 'column', gap: '1.5rem',
+                textAlign: 'center',
+              }}
+            >
+              {/* Icon & Title */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#ef4444',
+                }}>
+                  <AlertTriangle size={28} />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                  Delete Event permanently?
+                </h3>
+              </div>
+
+              {/* Message */}
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.6)', lineHeight: 1.6, margin: 0 }}>
+                WARNING: Are you sure you want to permanently delete this event? This will delete all guest names, wishes, photos, and files on the storage server forever. This action CANNOT be undone!
+              </p>
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={actionLoading === 'delete'}
+                  style={{ flex: 1, height: 44, borderRadius: 8, fontWeight: 700 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDeleteConfirm}
+                  disabled={actionLoading === 'delete'}
+                  style={{
+                    flex: 1, height: 44, borderRadius: 8, fontWeight: 700,
+                    backgroundColor: '#ef4444', borderColor: '#ef4444', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                  }}
+                >
+                  {actionLoading === 'delete' ? (
+                    <Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} />
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                  Delete Event
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

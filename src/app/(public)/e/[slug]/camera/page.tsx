@@ -161,6 +161,10 @@ export default function GuestCameraPage() {
         router.replace(`/e/${slug}/closed`);
         return; // Keep loading=true, let redirect handle navigation
       }
+      if (status === 403) {
+        router.replace(`/e/${slug}`);
+        return;
+      }
       toast.error('Failed to load event details.');
       setLoading(false);
     }

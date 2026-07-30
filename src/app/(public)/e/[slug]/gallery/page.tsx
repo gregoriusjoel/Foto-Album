@@ -88,7 +88,12 @@ export default function GalleryPage() {
       const eventData = res.data.data;
       setEvent(eventData);
       setPhotoCount(eventData.total_photos ?? 0);
-    } catch {}
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 403) {
+        router.replace(`/e/${slug}`);
+      }
+    }
   };
 
   const loadPhotos = async (p: number, cursor?: string | null) => {
@@ -106,6 +111,11 @@ export default function GalleryPage() {
       setPage(p);
     } catch (err) {
       console.error("Error loading photos:", err);
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 403) {
+        router.replace(`/e/${slug}`);
+        return;
+      }
       toast.error('Failed to load gallery.');
     } finally {
       setLoading(false);

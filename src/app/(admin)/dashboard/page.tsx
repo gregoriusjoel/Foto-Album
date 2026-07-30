@@ -104,7 +104,7 @@ export default function DashboardPage() {
         ) : (
           <div>
             {events.map((event, i) => {
-              const { label, className } = getEventStatusBadge(event.status);
+              const { label, className } = getEventStatusBadge(event.status, event.has_started);
               return (
                 <Link
                   key={event.id}

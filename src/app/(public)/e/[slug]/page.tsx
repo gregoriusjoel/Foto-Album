@@ -19,6 +19,73 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+function Countdown({ eventDate, startTime, timezone }: { eventDate: string; startTime: string; timezone: string }) {
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      try {
+        const targetStr = `${eventDate}T${startTime}`;
+        const targetLocal = new Date(targetStr);
+        const now = new Date();
+        const difference = targetLocal.getTime() - now.getTime();
+
+        if (difference <= 0) {
+          setTimeLeft(null);
+          window.location.reload();
+          return;
+        }
+
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      } catch (e) {
+        setTimeLeft(null);
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [eventDate, startTime, timezone]);
+
+  if (!timeLeft) {
+    return <span style={{ fontFamily: 'var(--font-mono)' }}>00:00:00:00</span>;
+  }
+
+  const formatNum = (n: number) => n.toString().padStart(2, '0');
+
+  return (
+    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', margin: '1rem 0' }}>
+      {[
+        { val: timeLeft.days, label: 'DAYS' },
+        { val: timeLeft.hours, label: 'HOURS' },
+        { val: timeLeft.minutes, label: 'MINS' },
+        { val: timeLeft.seconds, label: 'SECS' },
+      ].map((item, idx) => (
+        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 6,
+            width: 50, height: 44,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-mono)'
+          }}>
+            {formatNum(item.val)}
+          </div>
+          <span style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '0.25rem', letterSpacing: '0.05em' }}>
+            {item.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function JoinPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -260,65 +327,96 @@ export default function JoinPage() {
           </div>
         </div>
 
-        {/* ── Join form ── */}
+        {/* ── Join form / Scheduled waiting screen ── */}
         <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color-strong)', borderRadius: 'var(--radius-lg)' }}>
-          <h2 style={{ fontSize: '1.125rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem', textAlign: 'center' }}>
-            Join the Album
-          </h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.5rem' }}>
-            Enter your name to contribute photos and view the gallery.
-          </p>
+          {event.has_started === false ? (
+            <div style={{ textAlign: 'center' }}>
+              <h2 style={{ fontSize: '1.125rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                Event Scheduled
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                The event has not started yet. The photo album will unlock in:
+              </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div className="form-group">
-              <label className="form-label camera-meta-label" htmlFor="join-name" style={{ marginBottom: '0.5rem', display: 'block' }}>Your Name</label>
-              <div style={{ position: 'relative' }}>
-                <User size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
-                <input
-                  id="join-name"
-                  type="text"
-                  className={`form-input ${errors.name ? 'error' : ''}`}
-                  style={{ paddingLeft: '2.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color-strong)', fontFamily: 'var(--font-sans)' }}
-                  placeholder="e.g. Sarah Johnson"
-                  autoFocus
-                  autoComplete="name"
-                  {...register('name')}
-                />
+              <Countdown eventDate={event.event_date} startTime={event.start_time} timezone={event.timezone} />
+
+              <div style={{
+                marginTop: '1.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                border: '1px solid rgba(234, 179, 8, 0.2)',
+                color: '#eab308',
+                fontSize: '0.7rem',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.02em',
+                lineHeight: 1.4,
+              }}>
+                // Access locked until scheduled start time
               </div>
-              {errors.name && <span className="form-error" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{errors.name.message}</span>}
             </div>
+          ) : (
+            <>
+              <h2 style={{ fontSize: '1.125rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem', textAlign: 'center' }}>
+                Join the Album
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.5rem' }}>
+                Enter your name to contribute photos and view the gallery.
+              </p>
 
-            {event.requires_password && (
-              <div className="form-group">
-                <label className="form-label camera-meta-label" htmlFor="join-code" style={{ marginBottom: '0.5rem', display: 'block' }}>
-                  <Lock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-                  Join Code
-                </label>
-                <input
-                  id="join-code"
-                  type="text"
-                  className={`form-input ${errors.join_code ? 'error' : ''}`}
-                  placeholder="Enter the event code"
-                  style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color-strong)', fontFamily: 'var(--font-mono)' }}
-                  {...register('join_code')}
-                />
-                {errors.join_code && <span className="form-error" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{errors.join_code.message}</span>}
-              </div>
-            )}
+              <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="form-group">
+                  <label className="form-label camera-meta-label" htmlFor="join-name" style={{ marginBottom: '0.5rem', display: 'block' }}>Your Name</label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                    <input
+                      id="join-name"
+                      type="text"
+                      className={`form-input ${errors.name ? 'error' : ''}`}
+                      style={{ paddingLeft: '2.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color-strong)', fontFamily: 'var(--font-sans)' }}
+                      placeholder="e.g. Sarah Johnson"
+                      autoFocus
+                      autoComplete="name"
+                      {...register('name')}
+                    />
+                  </div>
+                  {errors.name && <span className="form-error" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{errors.name.message}</span>}
+                </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isSubmitting}
-              style={{ width: '100%', height: 48, marginTop: '0.25rem', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'transform 0.1s, box-shadow 0.2s' }}
-              onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
-              onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              {isSubmitting
-                ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Entering...</>
-                : <>Join Album <ArrowRight size={16} /></>}
-            </button>
-          </form>
+                {event.requires_password && (
+                  <div className="form-group">
+                    <label className="form-label camera-meta-label" htmlFor="join-code" style={{ marginBottom: '0.5rem', display: 'block' }}>
+                      <Lock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+                      Join Code
+                    </label>
+                    <input
+                      id="join-code"
+                      type="text"
+                      className={`form-input ${errors.join_code ? 'error' : ''}`}
+                      placeholder="Enter the event code"
+                      style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color-strong)', fontFamily: 'var(--font-mono)' }}
+                      {...register('join_code')}
+                    />
+                    {errors.join_code && <span className="form-error" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{errors.join_code.message}</span>}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isSubmitting}
+                  style={{ width: '100%', height: 48, marginTop: '0.25rem', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'transform 0.1s, box-shadow 0.2s' }}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {isSubmitting
+                    ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Entering...</>
+                    : <>Join Album <ArrowRight size={16} /></>}
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>

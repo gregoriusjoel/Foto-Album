@@ -39,15 +39,17 @@ export function truncate(str: string, maxLen: number): string {
   return str.length > maxLen ? str.slice(0, maxLen - 3) + '…' : str;
 }
 
-export function getEventStatusBadge(status: string): {
+export function getEventStatusBadge(status: string, hasStarted?: boolean): {
   label: string;
   className: string;
 } {
   const map: Record<string, { label: string; className: string }> = {
     draft:     { label: 'Draft',    className: 'badge-gray' },
-    published: { label: 'Live',     className: 'badge-success' },
+    published: hasStarted === false
+      ? { label: 'Scheduled', className: 'badge-warning' }
+      : { label: 'Live',      className: 'badge-success' },
     closed:    { label: 'Closed',   className: 'badge-error' },
-    archived:  { label: 'Archived', className: 'badge-warning' },
+    archived:  { label: 'Archived', className: 'badge-gray' },
   };
   return map[status] ?? { label: status, className: 'badge-gray' };
 }

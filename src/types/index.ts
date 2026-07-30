@@ -53,6 +53,7 @@ export interface Event {
   status: EventStatus;
   visibility: 'public' | 'private';
   requires_password: boolean;
+  has_started: boolean;
   // Admin-only fields
   join_code?: string;
   join_url?: string;

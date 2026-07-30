@@ -149,7 +149,7 @@ export default function EventsPage() {
               </thead>
               <tbody>
                 {filteredEvents.map((event) => {
-                  const { label, className } = getEventStatusBadge(event.status);
+                  const { label, className } = getEventStatusBadge(event.status, event.has_started);
                   return (
                     <tr
                       key={event.id}
