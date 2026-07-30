@@ -90,6 +90,200 @@ export default function EventDetailPage() {
     }
   };
 
+  const downloadQrCode = () => {
+    const svg = document.querySelector('.qr-wrapper svg');
+    if (!svg) return;
+
+    // Load the logo first
+    const logoImg = new window.Image();
+    logoImg.crossOrigin = "anonymous";
+    logoImg.src = "/logo-satu-album.png";
+
+    logoImg.onload = () => {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const qrImg = new window.Image();
+      
+      qrImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Set dimensions (Poster/Card style: 600 width, 850 height)
+        canvas.width = 600;
+        canvas.height = 850;
+
+        // 1. Draw Background (Deep rich charcoal/dark mode gradient)
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#09090b');
+        gradient.addColorStop(1, '#18181b');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // ─── BACKGROUND ORNAMENTS ───
+        // A. Faint dot grid matrix in the background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+        const dotSpacing = 30;
+        for (let x = 40; x < canvas.width - 40; x += dotSpacing) {
+          for (let y = 40; y < canvas.height - 40; y += dotSpacing) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // B. Faint circular aperture rings
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 380, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 220, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // C. Camera status info labels (top left / top right)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('[ ISO 400 ]', 35, 45);
+        ctx.textAlign = 'right';
+        ctx.fillText('[ MODE: ANA_COLOR ]', canvas.width - 35, 45);
+
+        // 2. Draw modern border (thin elegant border in light white opacity)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+        
+        // Add camera viewfinder style corner accents
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        const offset = 20;
+        const len = 15;
+        // Top-left
+        ctx.beginPath();
+        ctx.moveTo(offset, offset + len);
+        ctx.lineTo(offset, offset);
+        ctx.lineTo(offset + len, offset);
+        ctx.stroke();
+        // Top-right
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - offset, offset + len);
+        ctx.lineTo(canvas.width - offset, offset);
+        ctx.lineTo(canvas.width - offset - len, offset);
+        ctx.stroke();
+        // Bottom-left
+        ctx.beginPath();
+        ctx.moveTo(offset, canvas.height - offset - len);
+        ctx.lineTo(offset, canvas.height - offset);
+        ctx.lineTo(offset + len, canvas.height - offset);
+        ctx.stroke();
+        // Bottom-right
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - offset, canvas.height - offset - len);
+        ctx.lineTo(canvas.width - offset, canvas.height - offset);
+        ctx.lineTo(canvas.width - offset - len, canvas.height - offset);
+        ctx.stroke();
+
+        // 3. Draw Logo at the top (centered)
+        const logoWidth = 90;
+        const logoHeight = 90;
+        const logoX = (canvas.width - logoWidth) / 2;
+        const logoY = 65;
+        ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
+        // 4. Draw Website Name / Branding
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText('F O T O A L B U M', canvas.width / 2, logoY + logoHeight + 15);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.font = '11px monospace';
+        ctx.fillText('SHARE YOUR MOMENTS LIVE', canvas.width / 2, logoY + logoHeight + 48);
+
+        // 5. Draw QR Code in the middle (with a solid white card for scan compatibility)
+        const qrSize = 280;
+        const qrX = (canvas.width - qrSize) / 2;
+        const qrY = 250;
+        
+        // Draw solid white container box
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+        
+        // Draw QR Code image
+        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+        // 6. Draw Event Info in Footer (Shifted down for better balance without join code)
+        const footerY = 620;
+        
+        // Event Title (Bold & Elegant)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 32px sans-serif';
+        const titleText = (event?.title || 'OUR EVENT').toUpperCase();
+        ctx.fillText(titleText, canvas.width / 2, footerY);
+
+        // Subtitle instructions
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('SCAN QR CODE TO JOIN & SHARE PHOTOS', canvas.width / 2, footerY + 50);
+
+        // Trigger Download
+        try {
+          const pngUrl = canvas.toDataURL('image/png');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngUrl;
+          downloadLink.download = `QR_Card_${event?.slug || 'event'}.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        } catch (err) {
+          toast.error('Failed to generate PNG.');
+        }
+      };
+
+      qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    };
+
+    // If logo fails to load (fallback to only drawing QR code card)
+    logoImg.onerror = () => {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const qrImg = new window.Image();
+      qrImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        canvas.width = 600;
+        canvas.height = 800;
+
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+        // Draw solid white container box
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect((canvas.width - 320) / 2 - 20, 200 - 20, 320 + 40, 320 + 40);
+        ctx.drawImage(qrImg, (canvas.width - 320) / 2, 200, 320, 320);
+
+        try {
+          const pngUrl = canvas.toDataURL('image/png');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngUrl;
+          downloadLink.download = `QR_Card_${event?.slug || 'event'}.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        } catch {
+          toast.error('Failed to generate PNG.');
+        }
+      };
+      qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    };
+  };
+
   const requestDownload = async () => {
     setIsDownloading(true);
     try {
@@ -325,13 +519,18 @@ export default function EventDetailPage() {
             <div className="qr-wrapper" style={{ margin: '0 auto 1rem' }}>
               <QRCode value={joinUrl} size={160} />
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn btn-secondary btn-sm" style={{ flex: 1, fontSize: '0.8rem' }} onClick={copyJoinUrl}>
-                <Copy size={13} /> Copy URL
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button className="btn btn-secondary btn-sm" style={{ flex: 1, fontSize: '0.8rem' }} onClick={copyJoinUrl}>
+                  <Copy size={13} /> Copy URL
+                </button>
+                <Link href={joinUrl} target="_blank" className="btn btn-ghost btn-sm" style={{ padding: '0.4rem' }}>
+                  <ExternalLink size={14} />
+                </Link>
+              </div>
+              <button className="btn btn-secondary btn-sm" style={{ width: '100%', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem' }} onClick={downloadQrCode}>
+                <Download size={13} /> Download QR (PNG)
               </button>
-              <Link href={joinUrl} target="_blank" className="btn btn-ghost btn-sm" style={{ padding: '0.4rem' }}>
-                <ExternalLink size={14} />
-              </Link>
             </div>
             {event.join_code && (
               <div style={{
