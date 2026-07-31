@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Lottie from 'lottie-react';
+import likeHeartAnimation from '@/app/like-heart.json';
 import Link from 'next/link';
 import {
   Camera, Images, Users, X, ChevronLeft, ChevronRight, ZoomIn, Heart,
@@ -164,7 +166,7 @@ export default function GalleryPage() {
     setActiveHearts((prev) => [...prev, heartId]);
     setTimeout(() => {
       setActiveHearts((prev) => prev.filter((id) => id !== heartId));
-    }, 800);
+    }, 1400);
   };
 
   // Handle standard click/tap events
@@ -834,7 +836,11 @@ export default function GalleryPage() {
                         {activeHearts.some((hId) => hId.startsWith(photo.id)) && (
                           <div className="heart-overlay-container">
                             <div className="heart-wrapper">
-                              <Heart size={44} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                              <Lottie 
+                                animationData={likeHeartAnimation} 
+                                loop={false} 
+                                style={{ width: 100, height: 100 }} 
+                              />
                             </div>
                           </div>
                         )}
@@ -1041,12 +1047,11 @@ export default function GalleryPage() {
               {activeHearts.some((hId) => hId.startsWith(lightbox.photo.id)) && (
                 <div className="heart-overlay-container">
                   <div className="heart-wrapper">
-                    <Heart size={80} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
-                    <div className="sparks-container">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className={`spark-dot spark-${i}`} />
-                      ))}
-                    </div>
+                    <Lottie 
+                      animationData={likeHeartAnimation} 
+                      loop={false} 
+                      style={{ width: 220, height: 220 }} 
+                    />
                   </div>
                 </div>
               )}
