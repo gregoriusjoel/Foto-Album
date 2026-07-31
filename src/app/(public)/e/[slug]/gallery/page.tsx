@@ -942,45 +942,90 @@ export default function GalleryPage() {
             </button>
           )}
 
-          {/* Image */}
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '90vw', maxHeight: '90dvh', position: 'relative' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={lightbox.photo.optimized_url}
-              alt=""
-              style={{ maxWidth: '90vw', maxHeight: '85dvh', objectFit: 'contain', borderRadius: 12 }}
-            />
-            <div style={{
-              marginTop: '0.875rem', 
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '0 0.25rem',
-              color: '#fff', fontSize: '0.875rem',
-            }}>
-              <div style={{ textAlign: 'left', color: 'rgba(255,255,255,0.8)' }}>
-                <span style={{ fontWeight: 600 }}>{lightbox.photo.photographer ?? 'Guest'}</span>
-                <span style={{ margin: '0 0.5rem', opacity: 0.5 }}>·</span>
-                <span>{lightbox.index + 1} of {photos.length}</span>
-              </div>
+          {/* Image & Bottom Actions (iOS Style) */}
+          <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100dvh', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+            
+            {/* Fullscreen Image Container */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '100vw', maxHeight: 'calc(100vh - 130px)', padding: '1rem', marginTop: '3rem' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={lightbox.photo.optimized_url}
+                alt=""
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }}
+              />
+            </div>
 
+            {/* Info Caption (Centered above bottom toolbar) */}
+            <div style={{
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '0.8125rem',
+              fontFamily: 'var(--font-mono)',
+              marginBottom: '0.625rem',
+              textAlign: 'center',
+              zIndex: 10
+            }}>
+              <span style={{ fontWeight: 600 }}>{lightbox.photo.photographer ?? 'Guest'}</span>
+              <span style={{ margin: '0 0.5rem', opacity: 0.4 }}>·</span>
+              <span>{lightbox.index + 1} of {photos.length}</span>
+            </div>
+
+            {/* iOS-Style Bottom Toolbar */}
+            <div style={{
+              width: '100%',
+              background: 'rgba(20, 20, 25, 0.75)',
+              backdropFilter: 'blur(25px)',
+              WebkitBackdropFilter: 'blur(25px)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '0.75rem 2rem calc(0.75rem + env(safe-area-inset-bottom))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              zIndex: 10,
+            }}>
+              {/* Action 1: Share */}
+              <button
+                onClick={() => sharePhoto(lightbox.photo)}
+                style={{ background: 'transparent', border: 'none', color: '#fff', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Share2 size={20} />
+              </button>
+
+              {/* Action 2: Like */}
               {event?.allow_likes && (
                 <button
                   onClick={() => handleLike(lightbox.photo, lightbox.index, true)}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-                    border: 'none', borderRadius: '99px', padding: '0.4rem 0.875rem',
+                    background: 'transparent', border: 'none',
+                    color: lightbox.photo.liked ? '#f43f5e' : '#fff',
+                    padding: '0.5rem', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: '0.375rem',
-                    cursor: 'pointer', color: lightbox.photo.liked ? '#f43f5e' : '#fff',
-                    transition: 'transform 0.1s, background-color 0.2s',
+                    transition: 'transform 0.1s'
                   }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.85)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  <Heart size={14} fill={lightbox.photo.liked ? '#f43f5e' : 'none'} strokeWidth={2} />
+                  <Heart size={20} fill={lightbox.photo.liked ? '#f43f5e' : 'none'} strokeWidth={2} />
                   <span style={{ fontSize: '0.8125rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#fff' }}>
                     {lightbox.photo.like_count}
                   </span>
                 </button>
               )}
+
+              {/* Action 3: Info */}
+              <button
+                onClick={() => setShowInfoPhoto(lightbox.photo)}
+                style={{ background: 'transparent', border: 'none', color: '#fff', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Info size={20} />
+              </button>
+
+              {/* Action 4: Download */}
+              <button
+                onClick={() => downloadSinglePhoto(lightbox.photo)}
+                style={{ background: 'transparent', border: 'none', color: '#fff', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Download size={20} />
+              </button>
             </div>
           </div>
 
