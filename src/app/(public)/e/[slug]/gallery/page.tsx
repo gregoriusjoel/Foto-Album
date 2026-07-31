@@ -1563,6 +1563,13 @@ export default function GalleryPage() {
           justify-content: center;
           z-index: 30;
           pointer-events: none;
+          animation: heartOverlayFadeOut 1.4s ease-out forwards;
+        }
+
+        @keyframes heartOverlayFadeOut {
+          0% { opacity: 1; }
+          75% { opacity: 1; }
+          100% { opacity: 0; }
         }
 
         .heart-wrapper {
