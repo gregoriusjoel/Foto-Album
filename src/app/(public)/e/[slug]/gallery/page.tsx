@@ -1452,7 +1452,6 @@ export default function GalleryPage() {
         
         .photo-grid-item.in-selection-mode.is-selected::after {
           background: rgba(59, 130, 246, 0.15);
-          border: 3px solid #3b82f6;
           border-radius: 12px;
         }
 
