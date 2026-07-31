@@ -833,7 +833,9 @@ export default function GalleryPage() {
                         {/* Floating Double Tap Heart Indicator */}
                         {activeHearts.some((hId) => hId.startsWith(photo.id)) && (
                           <div className="heart-overlay-container">
-                            <Heart size={44} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                            <div className="heart-wrapper">
+                              <Heart size={44} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                            </div>
                           </div>
                         )}
 
@@ -1032,7 +1034,14 @@ export default function GalleryPage() {
               {/* Floating Double Tap Heart Indicator inside Lightbox */}
               {activeHearts.some((hId) => hId.startsWith(lightbox.photo.id)) && (
                 <div className="heart-overlay-container">
-                  <Heart size={80} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                  <div className="heart-wrapper">
+                    <Heart size={80} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                    <div className="sparks-container">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className={`spark-dot spark-${i}`} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1529,18 +1538,71 @@ export default function GalleryPage() {
           z-index: 30;
           pointer-events: none;
         }
-        
-        .heart-overlay-icon {
-          animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-          filter: drop-shadow(0 4px 15px rgba(0,0,0,0.4));
+
+        .heart-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
-        @keyframes heartPop {
-          0% { opacity: 0; transform: scale(0.3); }
-          15% { opacity: 0.95; transform: scale(1.2); }
-          30% { opacity: 1; transform: scale(1); }
-          70% { opacity: 1; transform: scale(1) translateY(0); }
-          100% { opacity: 0; transform: scale(0.8) translateY(-40px); }
+        .heart-overlay-icon {
+          animation: heartPopWiggle 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          filter: drop-shadow(0 4px 20px rgba(244, 63, 94, 0.7));
+        }
+        
+        @keyframes heartPopWiggle {
+          0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+          12% { opacity: 0.95; transform: scale(1.35) rotate(-18deg); }
+          24% { opacity: 1; transform: scale(1.1) rotate(18deg); }
+          36% { opacity: 1; transform: scale(1.2) rotate(-12deg); }
+          48% { opacity: 1; transform: scale(1.1) rotate(12deg); }
+          60% { opacity: 1; transform: scale(1.1) rotate(0deg); }
+          75% { opacity: 1; transform: scale(1.1) translateY(0); }
+          100% { opacity: 0; transform: scale(0.7) translateY(-35px); }
+        }
+
+        .sparks-container {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .spark-dot {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #f43f5e;
+          box-shadow: 0 0 8px #f43f5e;
+          opacity: 0;
+        }
+
+        .spark-0 { --angle: 0deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-1 { --angle: 45deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-2 { --angle: 90deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-3 { --angle: 135deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-4 { --angle: 180deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-5 { --angle: 225deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-6 { --angle: 270deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        .spark-7 { --angle: 315deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+
+        @keyframes sparkOutward {
+          0% {
+            opacity: 0;
+            transform: rotate(var(--angle)) translateY(0) scale(0.3);
+          }
+          20% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            transform: rotate(var(--angle)) translateY(-65px) scale(0.8);
+          }
         }
         
         .action-sheet-overlay {
