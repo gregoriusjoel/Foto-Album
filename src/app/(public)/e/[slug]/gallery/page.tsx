@@ -61,6 +61,7 @@ export default function GalleryPage() {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const isMovingRef = useRef(false);
+  const longPressedRef = useRef(false);
 
   // Toggle photo selection
   const toggleSelectPhoto = (uuid: string) => {
@@ -91,10 +92,12 @@ export default function GalleryPage() {
     card.style.boxShadow = '0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)';
     card.style.zIndex = '10';
 
+    longPressedRef.current = false;
     longPressTimerRef.current = setTimeout(() => {
       if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(15);
       }
+      longPressedRef.current = true;
       setActiveActionSheetPhoto({ photo, index: idx });
       
       // Reset card style
@@ -125,20 +128,9 @@ export default function GalleryPage() {
     card.style.boxShadow = '';
     card.style.zIndex = '';
 
-    if (mode === 'selection') {
-      if (!isMovingRef.current) {
-        toggleSelectPhoto(photo.id);
-      }
-      return;
-    }
-
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
-      
-      if (!isMovingRef.current) {
-        setLightbox({ photo, index: idx });
-      }
     }
   };
 
@@ -153,6 +145,21 @@ export default function GalleryPage() {
       longPressTimerRef.current = null;
     }
     isMovingRef.current = true;
+  };
+
+  // Handle standard click/tap events
+  const handleItemClick = (photo: Photo, index: number) => (e: React.MouseEvent) => {
+    if (longPressedRef.current) {
+      // If action sheet was opened by long press, skip click action
+      longPressedRef.current = false;
+      return;
+    }
+
+    if (mode === 'selection') {
+      toggleSelectPhoto(photo.id);
+    } else {
+      setLightbox({ photo, index });
+    }
   };
 
   // Download Single Photo (Blob creation fallback for desktop/safari force-download)
@@ -738,6 +745,7 @@ export default function GalleryPage() {
                         onMouseMove={moveLongPress}
                         onMouseUp={endLongPress(photo, idx)}
                         onMouseLeave={cancelLongPress}
+                        onClick={handleItemClick(photo, idx)}
                         style={{ position: 'relative' }}
                       >
                         {/* Checkbox overlay in Selection Mode */}
@@ -1345,6 +1353,7 @@ export default function GalleryPage() {
           user-select: none;
           -webkit-user-select: none;
           touch-action: pan-y;
+          -webkit-tap-highlight-color: transparent;
         }
         
         @keyframes slideUp {
@@ -1451,7 +1460,7 @@ export default function GalleryPage() {
         }
         
         .photo-grid-item.in-selection-mode.is-selected::after {
-          background: rgba(59, 130, 246, 0.15);
+          background: transparent;
           border-radius: 12px;
         }
 
