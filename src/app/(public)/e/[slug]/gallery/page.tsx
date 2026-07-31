@@ -64,6 +64,8 @@ export default function GalleryPage() {
   const longPressedRef = useRef(false);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const lastClickTimeRef = useRef<{ [key: string]: number }>({});
+  const [activeHearts, setActiveHearts] = useState<string[]>([]);
 
   // Toggle photo selection
   const toggleSelectPhoto = (uuid: string) => {
@@ -149,6 +151,22 @@ export default function GalleryPage() {
     isMovingRef.current = true;
   };
 
+  // Trigger double tap like logic
+  const handleDoubleLike = (photo: Photo, index: number, isLightbox = false) => {
+    if (!photo.liked) {
+      handleLike(photo, index, isLightbox);
+    }
+    triggerFloatingHeart(photo.id);
+  };
+
+  const triggerFloatingHeart = (photoId: string) => {
+    const heartId = `${photoId}_${Date.now()}`;
+    setActiveHearts((prev) => [...prev, heartId]);
+    setTimeout(() => {
+      setActiveHearts((prev) => prev.filter((id) => id !== heartId));
+    }, 800);
+  };
+
   // Handle standard click/tap events
   const handleItemClick = (photo: Photo, index: number) => (e: React.MouseEvent) => {
     if (longPressedRef.current) {
@@ -159,9 +177,32 @@ export default function GalleryPage() {
 
     if (mode === 'selection') {
       toggleSelectPhoto(photo.id);
-    } else {
-      setLightbox({ photo, index });
+      return;
     }
+
+    // Double tap/click detection
+    const now = Date.now();
+    const lastClick = lastClickTimeRef.current[photo.id] || 0;
+    if (now - lastClick < 300) {
+      handleDoubleLike(photo, index);
+      lastClickTimeRef.current[photo.id] = 0;
+      return;
+    }
+    lastClickTimeRef.current[photo.id] = now;
+
+    setLightbox({ photo, index });
+  };
+
+  // Handle click events on Lightbox fullscreen image
+  const handleLightboxClick = (photo: Photo, index: number) => (e: React.MouseEvent) => {
+    const now = Date.now();
+    const lastClick = lastClickTimeRef.current[photo.id] || 0;
+    if (now - lastClick < 300) {
+      handleDoubleLike(photo, index, true);
+      lastClickTimeRef.current[photo.id] = 0;
+      return;
+    }
+    lastClickTimeRef.current[photo.id] = now;
   };
 
   // Swipe Gestures for Lightbox
@@ -789,6 +830,13 @@ export default function GalleryPage() {
                           </div>
                         )}
 
+                        {/* Floating Double Tap Heart Indicator */}
+                        {activeHearts.some((hId) => hId.startsWith(photo.id)) && (
+                          <div className="heart-overlay-container">
+                            <Heart size={44} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                          </div>
+                        )}
+
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={photo.thumbnail_url}
@@ -968,7 +1016,7 @@ export default function GalleryPage() {
             <div 
               onTouchStart={handleLightboxTouchStart}
               onTouchEnd={handleLightboxTouchEnd}
-              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: '1rem' }}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: '1rem', position: 'relative' }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -977,8 +1025,16 @@ export default function GalleryPage() {
                 alt=""
                 className="lightbox-image-anim"
                 draggable="false"
+                onClick={handleLightboxClick(lightbox.photo, lightbox.index)}
                 style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 160px)', objectFit: 'contain', borderRadius: '8px', userSelect: 'none', WebkitUserSelect: 'none' }}
               />
+
+              {/* Floating Double Tap Heart Indicator inside Lightbox */}
+              {activeHearts.some((hId) => hId.startsWith(lightbox.photo.id)) && (
+                <div className="heart-overlay-container">
+                  <Heart size={80} className="heart-overlay-icon" fill="#f43f5e" color="#f43f5e" />
+                </div>
+              )}
             </div>
 
             {/* Info Caption (Centered above bottom toolbar) */}
@@ -1462,6 +1518,29 @@ export default function GalleryPage() {
         @keyframes lightboxFadeIn {
           from { opacity: 0; transform: scale(0.97); }
           to { opacity: 1; transform: scale(1); }
+         }
+        
+        .heart-overlay-container {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 30;
+          pointer-events: none;
+        }
+        
+        .heart-overlay-icon {
+          animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          filter: drop-shadow(0 4px 15px rgba(0,0,0,0.4));
+        }
+        
+        @keyframes heartPop {
+          0% { opacity: 0; transform: scale(0.3); }
+          15% { opacity: 0.95; transform: scale(1.2); }
+          30% { opacity: 1; transform: scale(1); }
+          70% { opacity: 1; transform: scale(1) translateY(0); }
+          100% { opacity: 0; transform: scale(0.8) translateY(-40px); }
         }
         
         .action-sheet-overlay {
