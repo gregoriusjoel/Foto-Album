@@ -4,13 +4,14 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Camera, Images, Users, X, ChevronLeft, ChevronRight, ZoomIn, Heart
+  Camera, Images, Users, X, ChevronLeft, ChevronRight, ZoomIn, Heart,
+  Download, Share2, Info, Copy, CheckSquare, Check, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import { useParticipantStore } from '@/store';
 import { formatDate } from '@/lib/utils';
-import type { Event, Photo } from '@/types';
+import type { Event, Photo, DownloadJob } from '@/types';
 import { CustomAudioPlayer } from '@/components/ui/CustomAudioPlayer';
 
 interface Wish {
@@ -41,6 +42,221 @@ export default function GalleryPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Selection & Mode States
+  const [mode, setMode] = useState<'normal' | 'selection'>('normal');
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
+  
+  // Context Menu & Info modal
+  const [activeActionSheetPhoto, setActiveActionSheetPhoto] = useState<{ photo: Photo; index: number } | null>(null);
+  const [showInfoPhoto, setShowInfoPhoto] = useState<Photo | null>(null);
+  
+  // ZIP Download Job State
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [zipProgress, setZipProgress] = useState(0);
+  const [zipError, setZipError] = useState<string | null>(null);
+  const [zipPreparing, setZipPreparing] = useState(false);
+  
+  // Long press timer refs
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isMovingRef = useRef(false);
+
+  // Toggle photo selection
+  const toggleSelectPhoto = (uuid: string) => {
+    setSelectedPhotoIds((prev) => {
+      if (prev.includes(uuid)) {
+        return prev.filter((id) => id !== uuid);
+      } else {
+        return [...prev, uuid];
+      }
+    });
+  };
+
+  // Touch Long-Press Gestures
+  const startLongPress = (photo: Photo, idx: number) => (e: React.MouseEvent | React.TouchEvent) => {
+    if (mode !== 'normal') return;
+    
+    const touch = 'touches' in e ? e.touches[0] : null;
+    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    isMovingRef.current = false;
+
+    // Apply scale micro-interaction
+    const card = e.currentTarget as HTMLElement;
+    card.style.transform = 'scale(1.05)';
+    card.style.transition = 'transform 0.18s cubic-bezier(0.16, 1, 0.3, 1)';
+    card.style.boxShadow = '0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)';
+    card.style.zIndex = '10';
+
+    longPressTimerRef.current = setTimeout(() => {
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(15);
+      }
+      setActiveActionSheetPhoto({ photo, index: idx });
+      
+      // Reset card style
+      card.style.transform = '';
+      card.style.boxShadow = '';
+      card.style.zIndex = '';
+      longPressTimerRef.current = null;
+    }, 600);
+  };
+
+  const moveLongPress = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = 'touches' in e ? e.touches[0] : null;
+    if (!touch) return;
+    const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
+    const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
+    
+    // If user scrolls, cancel
+    if (diffX > 10 || diffY > 10) {
+      cancelLongPress(e);
+    }
+  };
+
+  const endLongPress = (photo: Photo, idx: number) => (e: React.MouseEvent | React.TouchEvent) => {
+    const card = e.currentTarget as HTMLElement;
+    card.style.transform = '';
+    card.style.boxShadow = '';
+    card.style.zIndex = '';
+
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+      
+      if (!isMovingRef.current) {
+        if (mode === 'selection') {
+          toggleSelectPhoto(photo.id);
+        } else {
+          setLightbox({ photo, index: idx });
+        }
+      }
+    }
+  };
+
+  const cancelLongPress = (e: React.MouseEvent | React.TouchEvent) => {
+    const card = e.currentTarget as HTMLElement;
+    card.style.transform = '';
+    card.style.boxShadow = '';
+    card.style.zIndex = '';
+    
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    isMovingRef.current = true;
+  };
+
+  // Download Single Photo (Blob creation fallback for desktop/safari force-download)
+  const downloadSinglePhoto = async (photo: Photo) => {
+    try {
+      toast.loading('Downloading photo...', { id: 'single-dl' });
+      const response = await fetch(photo.original_url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `Photo_${photo.id}.webp`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      toast.success('Download complete!', { id: 'single-dl' });
+    } catch (err) {
+      console.error(err);
+      toast.error('Opening original photo for download...', { id: 'single-dl' });
+      window.open(photo.original_url, '_blank');
+    }
+  };
+
+  // Native Web Share API
+  const sharePhoto = async (photo: Photo) => {
+    const shareUrl = `${window.location.origin}/e/${slug}/gallery?photo=${photo.id}`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Photo from ${event?.title || 'FotoAlbum'}`,
+          text: `Check out this photo uploaded by ${photo.photographer ?? 'Guest'}!`,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      copyLink(photo);
+    }
+  };
+
+  // Copy shareable link to clipboard
+  const copyLink = (photo: Photo) => {
+    const shareUrl = `${window.location.origin}/e/${slug}/gallery?photo=${photo.id}`;
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => toast.success('Link copied to clipboard!'))
+      .catch(() => toast.error('Failed to copy link.'));
+  };
+
+  // Trigger public bulk ZIP download API
+  const triggerBulkDownload = async () => {
+    try {
+      setShowConfirmModal(false);
+      setZipPreparing(true);
+      setZipProgress(5);
+      setZipError(null);
+      
+      const res = await api.post<{ data: { job_id: string } }>(
+        `/public/events/${slug}/downloads`,
+        { photo_uuids: selectedPhotoIds }
+      );
+      pollZipJob(res.data.data.job_id);
+    } catch (err: any) {
+      console.error(err);
+      setZipPreparing(false);
+      const msg = err.response?.data?.message || 'Gagal memulai penyiapan ZIP.';
+      setZipError(msg);
+    }
+  };
+
+  // Poll bulk download status from backend
+  const pollZipJob = (jobId: string) => {
+    let progress = 5;
+    setZipProgress(progress);
+    
+    const interval = setInterval(async () => {
+      try {
+        // Visual indicator increments smoothly
+        progress = Math.min(progress + (100 - progress) * 0.15, 92);
+        setZipProgress(Math.round(progress));
+
+        const res = await api.get<{ data: { status: string; download_url?: string; error?: string } }>(`/public/downloads/${jobId}`);
+        const job = res.data.data;
+        
+        if (job.status === 'ready' || job.status === 'completed') {
+          clearInterval(interval);
+          setZipProgress(100);
+          setZipPreparing(false);
+          setMode('normal');
+          setSelectedPhotoIds([]);
+          
+          const url = job.download_url;
+          if (url) {
+            toast.success('ZIP ready! Starting download...', { id: 'zip-dl' });
+            window.open(url, '_blank');
+          } else {
+            toast.error('Download link not found.');
+          }
+        } else if (job.status === 'failed') {
+          clearInterval(interval);
+          setZipPreparing(false);
+          setZipError(job.error || 'Failed to compress ZIP.');
+          toast.error('Failed to generate ZIP.', { id: 'zip-dl' });
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 1800);
+  };
 
   // Tab and Wishes states
   const [tab, setTab] = useState<'photos' | 'wishes'>('photos');
@@ -230,41 +446,102 @@ export default function GalleryPage() {
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg-page)' }}>
       {/* ── Nav ── */}
-      <nav className="nav-bar" style={{ borderBottom: '1px solid var(--border-color-medium)' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-              background: 'var(--bg-page)',
-              border: '1.5px solid var(--text-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Camera size={14} color="var(--text-primary)" strokeWidth={2.5} />
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: '0.9375rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {event?.title ?? '…'}
+      <nav className="nav-bar" style={{ borderBottom: '1px solid var(--border-color-medium)', position: 'sticky', top: 0, zIndex: 80, background: 'var(--bg-page)' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', height: '54px' }}>
+          {mode === 'selection' ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button
+                  onClick={() => {
+                    setMode('normal');
+                    setSelectedPhotoIds([]);
+                  }}
+                  style={{
+                    background: 'transparent', border: 'none', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', padding: '0.25rem'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+                <span style={{ fontWeight: 700, fontSize: '1.0625rem', color: '#fff' }}>
+                  {selectedPhotoIds.length} Dipilih
+                </span>
               </div>
-              <div style={{ fontSize: '0.6875rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                HI, {name} // ROLL #01 // {photoCount} EXP
+              <div>
+                <button
+                  onClick={() => setSelectedPhotoIds(photos.map(p => p.id))}
+                  style={{
+                    background: 'transparent', border: 'none', color: 'var(--text-muted)',
+                    fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', marginRight: '1rem'
+                  }}
+                >
+                  Pilih Semua
+                </button>
+                <button
+                  onClick={() => {
+                    setMode('normal');
+                    setSelectedPhotoIds([]);
+                  }}
+                  style={{
+                    background: 'transparent', border: 'none', color: 'var(--text-muted)',
+                    fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  Batal
+                </button>
               </div>
-            </div>
-          </div>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+                  background: 'var(--bg-page)',
+                  border: '1.5px solid var(--text-primary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Camera size={14} color="var(--text-primary)" strokeWidth={2.5} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.9375rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {event?.title ?? '…'}
+                  </div>
+                  <div style={{ fontSize: '0.6875rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                    HI, {name} // ROLL #01 // {photoCount} EXP
+                  </div>
+                </div>
+              </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <Link
-              href={`/e/${slug}/camera`}
-              className="btn btn-primary btn-sm"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.375rem',
-                borderRadius: 'var(--radius-sm)',
-                fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
-                fontWeight: 700,
-              }}
-            >
-              <Camera size={15} /> Take Photo
-            </Link>
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {tab === 'photos' && photos.length > 0 && (
+                  <button
+                    onClick={() => setMode('selection')}
+                    style={{
+                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 'var(--radius-sm)', padding: '0.4rem 0.875rem',
+                      color: '#fff', fontSize: '0.75rem', fontFamily: 'var(--font-mono)',
+                      fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase'
+                    }}
+                  >
+                    Pilih
+                  </button>
+                )}
+                <Link
+                  href={`/e/${slug}/camera`}
+                  className="btn btn-primary btn-sm"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.375rem',
+                    borderRadius: 'var(--radius-sm)',
+                    fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
+                    fontWeight: 700,
+                  }}
+                >
+                  <Camera size={15} /> Take Photo
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </nav>
 
@@ -440,62 +717,81 @@ export default function GalleryPage() {
             ) : (
               <>
                 <div className="photo-grid">
-                  {photos.map((photo, idx) => (
-                    <div
-                      key={photo.id}
-                      className="photo-grid-item film-card"
-                      onClick={() => setLightbox({ photo, index: idx })}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.thumbnail_url}
-                        alt={`Photo by ${photo.photographer ?? 'Guest'}`}
-                        loading="lazy"
-                        style={{ width: '100%', height: 'auto', display: 'block' }}
-                      />
-
-                      {/* Floating Like Badge (Always visible, great for mobile) */}
-                      {event?.allow_likes && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(photo, idx);
-                          }}
-                          style={{
-                            position: 'absolute', top: '2.25rem', right: '1rem',
-                            background: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
-                            border: 'none', borderRadius: '99px', padding: '0.25rem 0.5rem',
-                            display: 'flex', alignItems: 'center', gap: '0.25rem',
-                            cursor: 'pointer', zIndex: 10,
-                            color: photo.liked ? '#f43f5e' : '#fff',
-                            transition: 'transform 0.1s, background-color 0.2s',
-                          }}
-                          onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
-                          onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                          <Heart size={12} fill={photo.liked ? '#f43f5e' : 'none'} strokeWidth={2} />
-                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
-                            {photo.like_count}
-                          </span>
-                        </button>
-                      )}
-                      <div style={{
-                        position: 'absolute', bottom: '1.75rem', left: '0.5rem', right: '0.5rem',
-                        padding: '0.5rem 0.625rem',
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
-                        opacity: 0,
-                        transition: 'opacity 0.2s',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      }}
-                        className="photo-caption"
+                  {photos.map((photo, idx) => {
+                    const isSelected = selectedPhotoIds.includes(photo.id);
+                    return (
+                      <div
+                        key={photo.id}
+                        className={`photo-grid-item film-card ${mode === 'selection' ? 'in-selection-mode' : ''} ${isSelected ? 'is-selected' : ''}`}
+                        onTouchStart={startLongPress(photo, idx)}
+                        onTouchMove={moveLongPress}
+                        onTouchEnd={endLongPress(photo, idx)}
+                        onTouchCancel={cancelLongPress}
+                        onMouseDown={startLongPress(photo, idx)}
+                        onMouseMove={moveLongPress}
+                        onMouseUp={endLongPress(photo, idx)}
+                        onMouseLeave={cancelLongPress}
+                        style={{ position: 'relative' }}
                       >
-                        <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>
-                          {photo.photographer ?? 'Guest'}
-                        </span>
-                        <ZoomIn size={14} color="rgba(255,255,255,0.8)" />
+                        {/* Checkbox overlay in Selection Mode */}
+                        {mode === 'selection' && (
+                          <div className={`grid-item-checkbox ${isSelected ? 'checked' : ''}`}>
+                            {isSelected && <Check size={12} strokeWidth={3} />}
+                          </div>
+                        )}
+
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photo.thumbnail_url}
+                          alt={`Photo by ${photo.photographer ?? 'Guest'}`}
+                          loading="lazy"
+                          style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+                        />
+
+                        {/* Floating Like Badge (Always visible, great for mobile) */}
+                        {event?.allow_likes && mode !== 'selection' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLike(photo, idx);
+                            }}
+                            style={{
+                              position: 'absolute', top: '2.25rem', right: '1rem',
+                              background: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+                              border: 'none', borderRadius: '99px', padding: '0.25rem 0.5rem',
+                              display: 'flex', alignItems: 'center', gap: '0.25rem',
+                              cursor: 'pointer', zIndex: 10,
+                              color: photo.liked ? '#f43f5e' : '#fff',
+                              transition: 'transform 0.1s, background-color 0.2s',
+                            }}
+                            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+                            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            <Heart size={12} fill={photo.liked ? '#f43f5e' : 'none'} strokeWidth={2} />
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                              {photo.like_count}
+                            </span>
+                          </button>
+                        )}
+                        
+                        <div style={{
+                          position: 'absolute', bottom: '1.75rem', left: '0.5rem', right: '0.5rem',
+                          padding: '0.5rem 0.625rem',
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
+                          opacity: 0,
+                          transition: 'opacity 0.2s',
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        }}
+                          className="photo-caption"
+                        >
+                          <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>
+                            {photo.photographer ?? 'Guest'}
+                          </span>
+                          <ZoomIn size={14} color="rgba(255,255,255,0.8)" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Load more */}
@@ -690,8 +986,476 @@ export default function GalleryPage() {
         </div>
       )}
 
+      {/* ── Action Sheet Overlay (iOS Haptic Touch Context Menu style) ── */}
+      {activeActionSheetPhoto && (
+        <div className="action-sheet-overlay" onClick={() => setActiveActionSheetPhoto(null)}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              maxWidth: '320px',
+              padding: '1.25rem',
+              animation: 'zoomIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Floating Image Preview */}
+            <img
+              src={activeActionSheetPhoto.photo.optimized_url}
+              alt=""
+              style={{
+                width: '100%',
+                maxHeight: '340px',
+                objectFit: 'cover',
+                borderRadius: '16px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.65)',
+                display: 'block',
+              }}
+            />
+
+            {/* Context Menu Card */}
+            <div
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                background: 'rgba(28, 28, 30, 0.85)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '14px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              <button
+                className="context-menu-item"
+                onClick={() => {
+                  downloadSinglePhoto(activeActionSheetPhoto.photo);
+                  setActiveActionSheetPhoto(null);
+                }}
+              >
+                <span>Download</span>
+                <Download size={18} />
+              </button>
+              
+              <button
+                className="context-menu-item"
+                onClick={() => {
+                  setMode('selection');
+                  setSelectedPhotoIds([activeActionSheetPhoto.photo.id]);
+                  setActiveActionSheetPhoto(null);
+                }}
+              >
+                <span>Pilih Foto</span>
+                <CheckSquare size={18} />
+              </button>
+
+              {typeof navigator !== 'undefined' && 'share' in navigator && (
+                <button
+                  className="context-menu-item"
+                  onClick={() => {
+                    sharePhoto(activeActionSheetPhoto.photo);
+                    setActiveActionSheetPhoto(null);
+                  }}
+                >
+                  <span>Bagikan</span>
+                  <Share2 size={18} />
+                </button>
+              )}
+
+              <button
+                className="context-menu-item"
+                onClick={() => {
+                  copyLink(activeActionSheetPhoto.photo);
+                  setActiveActionSheetPhoto(null);
+                }}
+              >
+                <span>Salin Link</span>
+                <Copy size={18} />
+              </button>
+
+              <button
+                className="context-menu-item"
+                onClick={() => {
+                  setShowInfoPhoto(activeActionSheetPhoto.photo);
+                  setActiveActionSheetPhoto(null);
+                }}
+              >
+                <span>Informasi Foto</span>
+                <Info size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Photo Information Modal ── */}
+      {showInfoPhoto && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }} onClick={() => setShowInfoPhoto(null)}>
+          <div
+            className="card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '90%', maxWidth: '400px', background: 'rgba(20,20,25,0.95)',
+              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
+              padding: '1.5rem', position: 'relative'
+            }}
+          >
+            <button
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              onClick={() => setShowInfoPhoto(null)}
+            >
+              <X size={18} />
+            </button>
+            
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Info size={18} color="var(--text-primary)" /> Detail Foto
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.8125rem', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Nama File</span>
+                <span style={{ color: '#fff', wordBreak: 'break-all' }}>{showInfoPhoto.id}.webp</span>
+              </div>
+              
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Pengunggah</span>
+                <span style={{ color: '#fff' }}>{showInfoPhoto.photographer ?? 'Guest'}</span>
+              </div>
+
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Tanggal Unggah</span>
+                <span style={{ color: '#fff' }}>{formatDate(showInfoPhoto.uploaded_at)}</span>
+              </div>
+
+              <div>
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Ukuran File</span>
+                <span style={{ color: '#fff' }}>Tinggi Kualitas WebP</span>
+              </div>
+            </div>
+            
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', marginTop: '1.5rem', borderRadius: 'var(--radius-sm)' }}
+              onClick={() => setShowInfoPhoto(null)}
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirm Zip Download Modal ── */}
+      {showConfirmModal && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }} onClick={() => setShowConfirmModal(false)}>
+          <div
+            className="card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '90%', maxWidth: '380px', background: 'rgba(20,20,25,0.95)',
+              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
+              padding: '1.5rem', textAlign: 'center'
+            }}
+          >
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#3b82f6'
+            }}>
+              <Download size={22} />
+            </div>
+
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+              Unduh {selectedPhotoIds.length} Foto?
+            </h3>
+            
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              Foto pilihan Anda akan dikompresi menjadi berkas ZIP tunggal.<br />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', display: 'block', marginTop: '0.5rem', color: 'var(--text-primary)' }}>
+                Estimasi ukuran berkas: ~{(selectedPhotoIds.length * 2.2).toFixed(1)} MB
+              </span>
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                className="btn btn-ghost"
+                style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
+                onClick={() => setShowConfirmModal(false)}
+              >
+                Batal
+              </button>
+              
+              <button
+                className="btn btn-primary"
+                style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
+                onClick={triggerBulkDownload}
+              >
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ZIP Preparing Progress Modal ── */}
+      {zipPreparing && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120 }}>
+          <div
+            className="card"
+            style={{
+              width: '90%', maxWidth: '380px', background: 'rgba(20,20,25,0.98)',
+              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
+              padding: '1.75rem', textAlign: 'center'
+            }}
+          >
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: '#3b82f6'
+            }}>
+              <RefreshCw size={22} className="spinning" />
+            </div>
+
+            <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+              Menyiapkan Unduhan...
+            </h3>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+              Sedang mengompresi foto pilihan Anda di server. Jangan tutup halaman ini.
+            </p>
+
+            <div style={{ width: '100%', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', height: '8px', marginBottom: '0.75rem', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${zipProgress}%`, height: '100%', background: '#3b82f6',
+                  borderRadius: '99px', transition: 'width 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+              <span>PROG: COMPRESSING</span>
+              <span style={{ fontWeight: 700, color: '#fff' }}>{zipProgress}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ZIP Error Modal ── */}
+      {zipError && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120 }} onClick={() => setZipError(null)}>
+          <div
+            className="card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '90%', maxWidth: '380px', background: 'rgba(20,20,25,0.95)',
+              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
+              padding: '1.5rem', textAlign: 'center'
+            }}
+          >
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color: '#ef4444'
+            }}>
+              <AlertTriangle size={22} />
+            </div>
+
+            <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
+              Gagal Mengunduh
+            </h3>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              {zipError}
+            </p>
+
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', borderRadius: 'var(--radius-sm)' }}
+              onClick={() => setZipError(null)}
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bottom Action Toolbar ── */}
+      {mode === 'selection' && selectedPhotoIds.length > 0 && (
+        <div className="bottom-toolbar">
+          <button
+            style={{
+              background: 'transparent', border: 'none', color: '#ef4444',
+              fontSize: '0.8125rem', fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'var(--font-mono)', textTransform: 'uppercase'
+            }}
+            onClick={() => {
+              setMode('normal');
+              setSelectedPhotoIds([]);
+            }}
+          >
+            Batal
+          </button>
+          
+          <button
+            className="btn btn-primary"
+            style={{
+              borderRadius: 'var(--radius-sm)', padding: '0.5rem 1.25rem',
+              display: 'flex', alignItems: 'center', gap: '0.375rem',
+              fontSize: '0.8125rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
+              fontWeight: 700, boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+            }}
+            onClick={() => {
+              if (selectedPhotoIds.length === 1) {
+                const photo = photos.find(p => p.id === selectedPhotoIds[0]);
+                if (photo) {
+                  downloadSinglePhoto(photo);
+                  setMode('normal');
+                  setSelectedPhotoIds([]);
+                }
+              } else {
+                setShowConfirmModal(true);
+              }
+            }}
+          >
+            <Download size={14} /> Download ({selectedPhotoIds.length})
+          </button>
+        </div>
+      )}
+
       <style>{`
         .photo-grid-item:hover .photo-caption { opacity: 1 !important; }
+        
+        .photo-grid-item {
+          position: relative;
+          cursor: pointer;
+          overflow: hidden;
+          border-radius: 12px;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: pan-y;
+        }
+        
+        @keyframes slideUp {
+          from { transform: translate(-50%, 120%); }
+          to { transform: translate(-50%, 0); }
+        }
+        @keyframes zoomIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        .action-sheet-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .context-menu-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding: 0.8125rem 1rem;
+          background: transparent;
+          border: none;
+          color: #fff;
+          font-size: 0.9375rem;
+          font-weight: 400;
+          cursor: pointer;
+          transition: background 0.15s;
+          font-family: inherit;
+        }
+        
+        .context-menu-item:not(:last-child) {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .context-menu-item:active {
+          background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .bottom-toolbar {
+          position: fixed;
+          bottom: 1.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          width: calc(100% - 2rem);
+          max-width: 450px;
+          background: rgba(20, 20, 25, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 0.75rem 1.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          z-index: 90;
+          animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .grid-item-checkbox {
+          position: absolute;
+          top: 0.75rem;
+          left: 0.75rem;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 2px solid #fff;
+          background: rgba(0,0,0,0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          z-index: 20;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .grid-item-checkbox.checked {
+          background: #3b82f6;
+          border-color: #3b82f6;
+        }
+        
+        .photo-grid-item.in-selection-mode::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.3);
+          transition: background 0.2s;
+          pointer-events: none;
+          z-index: 5;
+        }
+        
+        .photo-grid-item.in-selection-mode.is-selected::after {
+          background: rgba(59, 130, 246, 0.15);
+          border: 3px solid #3b82f6;
+          border-radius: 12px;
+        }
+
+        .spinning {
+          animation: spin 1.2s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
       `}</style>
     </div>
   );
