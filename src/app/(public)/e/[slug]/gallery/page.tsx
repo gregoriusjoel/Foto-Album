@@ -73,15 +73,18 @@ export default function GalleryPage() {
     });
   };
 
-  // Touch Long-Press Gestures
+  // Touch Long-Press & Selection Gestures
   const startLongPress = (photo: Photo, idx: number) => (e: React.MouseEvent | React.TouchEvent) => {
-    if (mode !== 'normal') return;
-    
     const touch = 'touches' in e ? e.touches[0] : null;
     touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
     isMovingRef.current = false;
 
-    // Apply scale micro-interaction
+    if (mode === 'selection') {
+      // In selection mode, we don't set long-press timer or scaling effect
+      return;
+    }
+
+    // Apply scale micro-interaction (Normal Mode only)
     const card = e.currentTarget as HTMLElement;
     card.style.transform = 'scale(1.05)';
     card.style.transition = 'transform 0.18s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -109,8 +112,9 @@ export default function GalleryPage() {
     const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
     const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
     
-    // If user scrolls, cancel
+    // If user scrolls/moves, cancel selection/long press
     if (diffX > 10 || diffY > 10) {
+      isMovingRef.current = true;
       cancelLongPress(e);
     }
   };
@@ -121,16 +125,19 @@ export default function GalleryPage() {
     card.style.boxShadow = '';
     card.style.zIndex = '';
 
+    if (mode === 'selection') {
+      if (!isMovingRef.current) {
+        toggleSelectPhoto(photo.id);
+      }
+      return;
+    }
+
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
       
       if (!isMovingRef.current) {
-        if (mode === 'selection') {
-          toggleSelectPhoto(photo.id);
-        } else {
-          setLightbox({ photo, index: idx });
-        }
+        setLightbox({ photo, index: idx });
       }
     }
   };
