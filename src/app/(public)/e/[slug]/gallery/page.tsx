@@ -866,7 +866,13 @@ export default function GalleryPage() {
                             onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
                             onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                           >
-                            <Heart size={12} fill={photo.liked ? '#f43f5e' : 'none'} strokeWidth={2} />
+                            <Heart 
+                              key={photo.liked ? 'liked' : 'unliked'}
+                              size={12} 
+                              className={photo.liked ? 'heart-bounce-anim' : ''}
+                              fill={photo.liked ? '#f43f5e' : 'none'} 
+                              strokeWidth={2} 
+                            />
                             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
                               {photo.like_count}
                             </span>
@@ -1107,7 +1113,13 @@ export default function GalleryPage() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.85)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  <Heart size={20} fill={lightbox.photo.liked ? '#f43f5e' : 'none'} strokeWidth={2} />
+                  <Heart 
+                    key={lightbox.photo.liked ? 'liked' : 'unliked'}
+                    size={20} 
+                    className={lightbox.photo.liked ? 'heart-bounce-anim' : ''}
+                    fill={lightbox.photo.liked ? '#f43f5e' : 'none'} 
+                    strokeWidth={2} 
+                  />
                   <span style={{ fontSize: '0.8125rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#fff' }}>
                     {lightbox.photo.like_count}
                   </span>
@@ -1528,6 +1540,15 @@ export default function GalleryPage() {
           from { opacity: 0; transform: scale(0.97); }
           to { opacity: 1; transform: scale(1); }
          }
+        
+        .heart-bounce-anim {
+          animation: heartBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes heartBounce {
+          0% { transform: scale(0.6); }
+          50% { transform: scale(1.35); }
+          100% { transform: scale(1); }
+        }
         
         .heart-overlay-container {
           position: absolute;
