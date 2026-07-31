@@ -1202,7 +1202,12 @@ export default function GalleryPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.8125rem', fontFamily: 'var(--font-mono)' }}>
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
                 <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Nama File</span>
-                <span style={{ color: '#fff', wordBreak: 'break-all' }}>{showInfoPhoto.id}.webp</span>
+                <span style={{ color: '#fff', wordBreak: 'break-all' }}>
+                  {(() => {
+                    const photoIdx = photos.findIndex(p => p.id === showInfoPhoto.id);
+                    return photoIdx !== -1 ? `IMG_${String(photoIdx + 1).padStart(4, '0')}.webp` : 'IMG_0001.webp';
+                  })()}
+                </span>
               </div>
               
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
@@ -1216,8 +1221,22 @@ export default function GalleryPage() {
               </div>
 
               <div>
-                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Ukuran File</span>
-                <span style={{ color: '#fff' }}>Tinggi Kualitas WebP</span>
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Dimensi & Ukuran</span>
+                <span style={{ color: '#fff' }}>
+                  {showInfoPhoto.width && showInfoPhoto.height ? `${showInfoPhoto.width} × ${showInfoPhoto.height}` : ''}
+                  {showInfoPhoto.width && showInfoPhoto.height && showInfoPhoto.size_bytes ? ' · ' : ''}
+                  {showInfoPhoto.size_bytes ? (
+                    (() => {
+                      const bytes = showInfoPhoto.size_bytes;
+                      if (bytes < 1024) return `${bytes} B`;
+                      const kb = bytes / 1024;
+                      if (kb < 1024) return `${kb.toFixed(1)} KB`;
+                      return `${(kb / 1024).toFixed(1)} MB`;
+                    })()
+                  ) : (
+                    'Tinggi Kualitas WebP'
+                  )}
+                </span>
               </div>
             </div>
             
