@@ -416,6 +416,21 @@ a:hover { color: var(--color-brand-300); }
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-overlay img {
+  user-drag: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.modal-overlay button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 .modal-box {
   background: var(--bg-card);

@@ -62,6 +62,8 @@ export default function GalleryPage() {
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const isMovingRef = useRef(false);
   const longPressedRef = useRef(false);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
 
   // Toggle photo selection
   const toggleSelectPhoto = (uuid: string) => {
@@ -160,6 +162,38 @@ export default function GalleryPage() {
     } else {
       setLightbox({ photo, index });
     }
+  };
+
+  // Swipe Gestures for Lightbox
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+  };
+
+  const handleLightboxTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    
+    const touch = e.changedTouches[0];
+    const diffX = touch.clientX - touchStartXRef.current;
+    const diffY = touch.clientY - touchStartYRef.current;
+    
+    // Swipe left (diffX < -50) -> next
+    // Swipe right (diffX > 50) -> prev
+    if (Math.abs(diffX) > Math.abs(diffY) * 1.5 && Math.abs(diffX) > 60) {
+      if (diffX < 0) {
+        if (lightbox && lightbox.index < photos.length - 1) {
+          lightboxNav(1);
+        }
+      } else {
+        if (lightbox && lightbox.index > 0) {
+          lightboxNav(-1);
+        }
+      }
+    }
+    
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
   };
 
   // Download Single Photo (Blob creation fallback for desktop/safari force-download)
@@ -946,40 +980,59 @@ export default function GalleryPage() {
           <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100dvh', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
             
             {/* Fullscreen Image Container */}
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '100vw', maxHeight: 'calc(100vh - 130px)', padding: '1rem', marginTop: '3rem' }}>
+            <div 
+              onTouchStart={handleLightboxTouchStart}
+              onTouchEnd={handleLightboxTouchEnd}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: '1rem' }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                key={lightbox.photo.id}
                 src={lightbox.photo.optimized_url}
                 alt=""
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }}
+                className="lightbox-image-anim"
+                draggable="false"
+                style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 160px)', objectFit: 'contain', borderRadius: '8px', userSelect: 'none', WebkitUserSelect: 'none' }}
               />
             </div>
 
             {/* Info Caption (Centered above bottom toolbar) */}
             <div style={{
+              position: 'absolute',
+              bottom: '4.85rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
               color: 'rgba(255,255,255,0.7)',
               fontSize: '0.8125rem',
               fontFamily: 'var(--font-mono)',
-              marginBottom: '0.625rem',
               textAlign: 'center',
-              zIndex: 10
+              zIndex: 10,
+              width: '100%',
+              pointerEvents: 'none',
             }}>
               <span style={{ fontWeight: 600 }}>{lightbox.photo.photographer ?? 'Guest'}</span>
               <span style={{ margin: '0 0.5rem', opacity: 0.4 }}>·</span>
               <span>{lightbox.index + 1} of {photos.length}</span>
             </div>
 
-            {/* iOS-Style Bottom Toolbar */}
+            {/* iOS-Style Bottom Toolbar (Rounded & Floating) */}
             <div style={{
-              width: '100%',
+              position: 'absolute',
+              bottom: '1.25rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 'calc(100% - 2.5rem)',
+              maxWidth: '360px',
               background: 'rgba(20, 20, 25, 0.75)',
               backdropFilter: 'blur(25px)',
               WebkitBackdropFilter: 'blur(25px)',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              padding: '0.75rem 2rem calc(0.75rem + env(safe-area-inset-bottom))',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '99px',
+              padding: '0.625rem 1.25rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-around',
+              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6)',
               zIndex: 10,
             }}>
               {/* Action 1: Share */}
@@ -1412,6 +1465,14 @@ export default function GalleryPage() {
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        
+        .lightbox-image-anim {
+          animation: lightboxFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes lightboxFadeIn {
+          from { opacity: 0; transform: scale(0.97); }
+          to { opacity: 1; transform: scale(1); }
         }
         
         .action-sheet-overlay {
