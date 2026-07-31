@@ -961,21 +961,6 @@ export default function GalleryPage() {
             <X size={20} />
           </button>
 
-          {/* Prev */}
-          {lightbox.index > 0 && (
-            <button
-              style={{
-                position: 'fixed', left: '1rem', top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%',
-                width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', cursor: 'pointer', zIndex: 10,
-              }}
-              onClick={(e) => { e.stopPropagation(); lightboxNav(-1); }}
-            >
-              <ChevronLeft size={22} />
-            </button>
-          )}
-
           {/* Image & Bottom Actions (iOS Style) */}
           <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100dvh', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
             
@@ -1081,21 +1066,6 @@ export default function GalleryPage() {
               </button>
             </div>
           </div>
-
-          {/* Next */}
-          {lightbox.index < photos.length - 1 && (
-            <button
-              style={{
-                position: 'fixed', right: '1rem', top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%',
-                width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', cursor: 'pointer', zIndex: 10,
-              }}
-              onClick={(e) => { e.stopPropagation(); lightboxNav(1); }}
-            >
-              <ChevronRight size={22} />
-            </button>
-          )}
         </div>
       )}
 
@@ -1207,7 +1177,7 @@ export default function GalleryPage() {
 
       {/* ── Photo Information Modal ── */}
       {showInfoPhoto && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }} onClick={() => setShowInfoPhoto(null)}>
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }} onClick={() => setShowInfoPhoto(null)}>
           <div
             className="card"
             onClick={(e) => e.stopPropagation()}
@@ -1264,7 +1234,7 @@ export default function GalleryPage() {
 
       {/* ── Confirm Zip Download Modal ── */}
       {showConfirmModal && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }} onClick={() => setShowConfirmModal(false)}>
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }} onClick={() => setShowConfirmModal(false)}>
           <div
             className="card"
             onClick={(e) => e.stopPropagation()}
@@ -1316,7 +1286,7 @@ export default function GalleryPage() {
 
       {/* ── ZIP Preparing Progress Modal ── */}
       {zipPreparing && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120 }}>
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200 }}>
           <div
             className="card"
             style={{
@@ -1360,7 +1330,7 @@ export default function GalleryPage() {
 
       {/* ── ZIP Error Modal ── */}
       {zipError && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120 }} onClick={() => setZipError(null)}>
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200 }} onClick={() => setZipError(null)}>
           <div
             className="card"
             onClick={(e) => e.stopPropagation()}
