@@ -197,7 +197,7 @@ export default function EventDetailPage() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.font = 'bold 24px sans-serif';
-        ctx.fillText('F O T O A L B U M', canvas.width / 2, logoY + logoHeight + 15);
+        ctx.fillText('M E M L Y', canvas.width / 2, logoY + logoHeight + 15);
 
         ctx.fillStyle = 'rgba(31, 31, 31, 0.5)';
         ctx.font = '11px monospace';
