@@ -52,6 +52,7 @@ export default function GalleryPage() {
   
   // Context Menu & Info modal
   const [activeActionSheetPhoto, setActiveActionSheetPhoto] = useState<{ photo: Photo; index: number } | null>(null);
+  const [actionSheetImageLoaded, setActionSheetImageLoaded] = useState(false);
   const [showInfoPhoto, setShowInfoPhoto] = useState<Photo | null>(null);
   
   // ZIP Download Job State
@@ -368,6 +369,12 @@ export default function GalleryPage() {
   }, []);
 
   useEffect(() => {
+    if (activeActionSheetPhoto) {
+      setActionSheetImageLoaded(false);
+    }
+  }, [activeActionSheetPhoto]);
+
+  useEffect(() => {
     const photos = event?.banner_photos;
     if (!photos || photos.length === 0) return;
     const interval = setInterval(() => {
@@ -599,10 +606,29 @@ export default function GalleryPage() {
                   <Camera size={14} color="var(--text-primary)" strokeWidth={2.5} />
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.9375rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ 
+                    fontWeight: 800, 
+                    fontSize: '0.9375rem', 
+                    fontFamily: 'var(--font-display)', 
+                    textTransform: 'uppercase', 
+                    color: 'var(--text-primary)', 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis', 
+                    whiteSpace: 'nowrap',
+                    maxWidth: '140px'
+                  }}>
                     {event?.title ?? '…'}
                   </div>
-                  <div style={{ fontSize: '0.6875rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                  <div style={{ 
+                    fontSize: '0.6875rem', 
+                    fontFamily: 'var(--font-mono)', 
+                    textTransform: 'uppercase', 
+                    color: 'var(--text-muted)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '140px'
+                  }}>
                     HI, {name} // ROLL #01 // {photoCount} EXP
                   </div>
                 </div>
@@ -949,26 +975,26 @@ export default function GalleryPage() {
                     <div
                       key={wish.id}
                       style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: 8,
+                        backgroundColor: '#ffffff',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                        borderRadius: '12px',
                         padding: '1.25rem',
                         display: 'flex', flexDirection: 'column', gap: '0.75rem',
-                        boxShadow: 'var(--shadow-md)',
+                        boxShadow: 'var(--shadow-sm)',
                         animation: 'fadeIn 0.2s ease',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.875rem', color: '#fff', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.8125rem', color: 'var(--text-primary)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                           {wish.participant?.name ?? 'Guest'}
                         </span>
-                        <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                           {formatDate(wish.created_at)}
                         </span>
                       </div>
 
                       {wish.text_message && (
-                        <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, fontStyle: 'italic', wordBreak: 'break-word' }}>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6, fontStyle: 'italic', wordBreak: 'break-word', fontFamily: 'var(--font-sans)' }}>
                           &ldquo;{wish.text_message}&rdquo;
                         </p>
                       )}
@@ -977,7 +1003,7 @@ export default function GalleryPage() {
                         <div style={{ marginTop: '0.25rem' }}>
                           <CustomAudioPlayer src={wish.audio_url} duration={wish.audio_duration_seconds || undefined} />
                           {wish.audio_duration_seconds && (
-                            <div style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginTop: '0.25rem', textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '0.375rem', textAlign: 'right' }}>
                               Voice Note • {wish.audio_duration_seconds}s
                             </div>
                           )}
@@ -1163,19 +1189,55 @@ export default function GalleryPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Floating Image Preview */}
-            <img
-              src={activeActionSheetPhoto.photo.optimized_url}
-              alt=""
-              style={{
-                width: '100%',
-                maxHeight: '340px',
-                objectFit: 'cover',
-                borderRadius: '16px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.65)',
-                display: 'block',
-              }}
-            />
+            {/* Floating Image Preview Container */}
+            <div style={{
+              width: '100%',
+              height: '300px',
+              position: 'relative',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.65)',
+              background: 'rgba(255, 255, 255, 0.05)',
+            }}>
+              {/* Shimmer/Spinner loader */}
+              {!actionSheetImageLoaded && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(0, 0, 0, 0.45) linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite linear',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    border: '3px solid rgba(255, 255, 255, 0.15)',
+                    borderTopColor: '#ffffff',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                  }} />
+                </div>
+              )}
+              
+              <img
+                src={activeActionSheetPhoto.photo.optimized_url}
+                alt=""
+                onLoad={() => setActionSheetImageLoaded(true)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  opacity: actionSheetImageLoaded ? 1 : 0,
+                  transform: actionSheetImageLoaded ? 'scale(1)' : 'scale(0.96)',
+                  transition: 'opacity 0.3s ease-out, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              />
+            </div>
 
             {/* Context Menu Card */}
             <div

@@ -12,9 +12,9 @@ export const metadata: Metadata = {
     'Memly is a collaborative memory-preservation platform designed to help you capture, organize, and relive life\'s most meaningful moments.',
   keywords: ['photo album', 'event photos', 'collaborative album', 'QR code photos', 'wedding photos', 'memory preservation', 'Memly'],
   icons: {
-    icon: '/logo-memly.png',
-    shortcut: '/logo-memly.png',
-    apple: '/logo-memly.png',
+    icon: '/logo-memly-white.png',
+    shortcut: '/logo-memly-white.png',
+    apple: '/logo-memly-white.png',
   },
   openGraph: {
     type: 'website',

@@ -300,19 +300,23 @@ a:hover {
   pointer-events: none;
 }
 
-.btn-primary {
-  background: var(--gradient-brand);
-  color: #09090b;
+.btn-primary,
+a.btn-primary {
+  background: var(--color-burnt-orange);
+  color: #ffffff !important;
   border-color: transparent;
-  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  box-shadow: 0 4px 12px rgba(184, 106, 60, 0.18);
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+a.btn-primary:hover {
+  color: #ffffff !important;
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 16px rgba(184, 106, 60, 0.3);
 }
 
-.btn-primary:active {
+.btn-primary:active,
+a.btn-primary:active {
   transform: translateY(0);
 }
 

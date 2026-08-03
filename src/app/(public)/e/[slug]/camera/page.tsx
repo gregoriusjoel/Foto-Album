@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Camera, CameraOff, RefreshCw, Zap, ZapOff, Image as ImageIcon, 
+import {
+  Camera, CameraOff, RefreshCw, Zap, ZapOff, Image as ImageIcon,
   ArrowLeft, ArrowRight, Loader2, CheckCircle2, AlertCircle, Sparkles
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -17,6 +17,8 @@ import { useCameraUpload } from '@/hooks/useCameraUpload';
 import type { Event } from '@/types';
 import { CustomAudioPlayer } from '@/components/ui/CustomAudioPlayer';
 import { ApertureLoader } from '@/components/ui/ApertureLoader';
+import Lottie from 'lottie-react';
+import cameraAperture from '@/app/camera-aperture.json';
 
 const FILM_FILTERS = [
   { id: 'normal', name: 'NORMAL', filter: 'none' },
@@ -84,10 +86,17 @@ export default function GuestCameraPage() {
 
   // Native input fallback ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const fullscreenLottieRef = useRef<any>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (showFullscreenOverlay && fullscreenLottieRef.current) {
+      fullscreenLottieRef.current.setSpeed(2.5);
+    }
+  }, [showFullscreenOverlay]);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -231,7 +240,7 @@ export default function GuestCameraPage() {
     try {
       audioChunksRef.current = [];
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       const options = { mimeType: 'audio/webm' };
       let recorder: MediaRecorder;
       try {
@@ -333,7 +342,7 @@ export default function GuestCameraPage() {
   const handleNativeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
     let fileToUpload: Blob | File = file;
 
@@ -390,8 +399,8 @@ export default function GuestCameraPage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: '#0c0c0f',
-        color: '#fff',
+        backgroundColor: 'rgba(250, 248, 244, 0.96)',
+        color: 'var(--text-primary)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -402,38 +411,42 @@ export default function GuestCameraPage() {
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}>
         {/* Viewfinder corners — decorative only */}
-        {['tl','tr','bl','br'].map((pos) => (
+        {['tl', 'tr', 'bl', 'br'].map((pos) => (
           <div key={pos} style={{
             position: 'absolute',
             width: 28,
             height: 28,
-            borderColor: 'rgba(255,255,255,0.25)',
+            borderColor: 'rgba(31, 31, 31, 0.15)',
             borderStyle: 'solid',
-            borderTopWidth:    pos.startsWith('t') ? 1.5 : 0,
+            borderTopWidth: pos.startsWith('t') ? 1.5 : 0,
             borderBottomWidth: pos.startsWith('b') ? 1.5 : 0,
-            borderLeftWidth:   pos.endsWith('l')   ? 1.5 : 0,
-            borderRightWidth:  pos.endsWith('r')   ? 1.5 : 0,
-            top:    pos.startsWith('t') ? '1.25rem' : undefined,
+            borderLeftWidth: pos.endsWith('l') ? 1.5 : 0,
+            borderRightWidth: pos.endsWith('r') ? 1.5 : 0,
+            top: pos.startsWith('t') ? '1.25rem' : undefined,
             bottom: pos.startsWith('b') ? '1.25rem' : undefined,
-            left:   pos.endsWith('l')   ? '1.25rem' : undefined,
-            right:  pos.endsWith('r')   ? '1.25rem' : undefined,
+            left: pos.endsWith('l') ? '1.25rem' : undefined,
+            right: pos.endsWith('r') ? '1.25rem' : undefined,
           }} />
         ))}
 
         <div style={{ maxWidth: 320, width: '100%', animation: 'slideUp 0.4s ease both' }}>
-          {/* Camera icon */}
+          {/* Animated Lottie Aperture Shutter */}
           <div style={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.1)',
-            border: '2px solid rgba(255,255,255,0.7)',
+            width: 320,
+            height: 320,
+            margin: '-4.5rem auto -5rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 1.75rem',
+            transform: 'scale(1.4)',
           }}>
-            <Camera size={34} color="#ffffff" />
+            <Lottie 
+              lottieRef={fullscreenLottieRef}
+              animationData={cameraAperture} 
+              loop={true} 
+              autoplay={true}
+              style={{ width: '100%', height: '100%' }} 
+            />
           </div>
 
           {/* Event title */}
@@ -442,7 +455,7 @@ export default function GuestCameraPage() {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: '#ffffff',
+            color: 'var(--text-primary)',
             marginBottom: '0.5rem',
             lineHeight: 1.3,
           }}>
@@ -452,7 +465,7 @@ export default function GuestCameraPage() {
           {/* Subtitle */}
           <p style={{
             fontSize: '0.875rem',
-            color: 'rgba(255,255,255,0.55)',
+            color: 'var(--text-secondary)',
             lineHeight: 1.65,
             marginBottom: '2rem',
           }}>
@@ -469,8 +482,8 @@ export default function GuestCameraPage() {
               justifyContent: 'center',
               gap: '0.5rem',
               padding: '0.9rem 1.5rem',
-              background: '#ffffff',
-              color: '#0c0c0f',
+              background: 'var(--color-burnt-orange)',
+              color: '#ffffff',
               border: 'none',
               borderRadius: '12px',
               fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -479,16 +492,16 @@ export default function GuestCameraPage() {
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
               cursor: 'pointer',
-              boxShadow: '0 0 24px rgba(255,255,255,0.15)',
+              boxShadow: '0 4px 14px rgba(184, 106, 60, 0.25)',
               transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 32px rgba(255,255,255,0.25)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(184, 106, 60, 0.4)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(255,255,255,0.15)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(184, 106, 60, 0.25)';
             }}
           >
             <Camera size={18} />
@@ -509,10 +522,10 @@ export default function GuestCameraPage() {
   const strokeDashoffset = circumference - (uploadState.progress / 100) * circumference;
 
   return (
-    <div style={{ 
-      position: 'fixed', inset: 0, 
-      backgroundColor: '#000', 
-      color: '#fff', 
+    <div style={{
+      position: 'fixed', inset: 0,
+      backgroundColor: '#000',
+      color: '#fff',
       display: 'flex', flexDirection: 'column',
       userSelect: 'none',
       overflow: 'hidden',
@@ -787,7 +800,7 @@ export default function GuestCameraPage() {
             }}>
               <CameraOff size={32} style={{ color: '#ef4444' }} />
             </div>
-            
+
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: 700 }}>
               Camera Preview Unavailable
             </h2>
@@ -842,7 +855,7 @@ export default function GuestCameraPage() {
             </motion.div>
           )}
         </AnimatePresence>
- 
+
         {/* ── Top overlay bar ── */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0,
@@ -851,14 +864,14 @@ export default function GuestCameraPage() {
           zIndex: 15
         }}>
           {/* Back to Gallery */}
-          <Link href={`/e/${slug}/gallery`} className="btn btn-ghost btn-sm" style={{ 
+          <Link href={`/e/${slug}/gallery`} className="btn btn-ghost btn-sm" style={{
             color: '#fff', display: 'flex', alignItems: 'center', gap: '0.375rem',
             background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
             borderRadius: 'var(--radius-sm)', padding: '0.4rem 0.875rem', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em'
           }}>
             <ArrowLeft size={12} /> GALLERY
           </Link>
- 
+
           {/* Event title */}
           <div style={{ textAlign: 'center', maxWidth: '40%', fontFamily: 'var(--font-mono)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -868,7 +881,7 @@ export default function GuestCameraPage() {
               Hi, {name}
             </div>
           </div>
- 
+
           {/* Photo Counter + Flash Container */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
             {/* Photo Counter */}
@@ -922,7 +935,7 @@ export default function GuestCameraPage() {
       }}>
         {/* ── Filter Selector (Only in photo mode) ── */}
         {mode === 'photo' && cam.isReady && !cam.error && !cam.isLoading && (
-          <div 
+          <div
             style={{
               display: 'flex',
               justifyContent: 'flex-start',
@@ -1001,7 +1014,7 @@ export default function GuestCameraPage() {
 
         {/* ── Shutter Bar / Record Control Bar ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          
+
           {/* Left: last captured thumbnail link to Gallery */}
           <div style={{ width: 44, height: 44 }}>
             {lastCapture ? (
@@ -1014,9 +1027,9 @@ export default function GuestCameraPage() {
                 />
               </Link>
             ) : (
-              <div style={{ 
-                width: '100%', height: '100%', borderRadius: 8, 
-                border: '2px dashed rgba(255,255,255,0.2)', 
+              <div style={{
+                width: '100%', height: '100%', borderRadius: 8,
+                border: '2px dashed rgba(255,255,255,0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'rgba(255,255,255,0.3)'
               }}>
