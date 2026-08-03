@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'fotoalbum-auth',
+      name: 'memly-auth',
       storage: createJSONStorage(() =>
         typeof window !== 'undefined' ? localStorage : sessionStorage
       ),

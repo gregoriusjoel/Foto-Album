@@ -12,8 +12,8 @@ import { getInitials } from '@/lib/utils';
 
 const navLinks = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/events',    icon: Calendar,        label: 'Events' },
-  { href: '/settings',  icon: Settings,         label: 'Settings' },
+  { href: '/events', icon: Calendar, label: 'Events' },
+  { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleLogout = async () => {
     try {
       await adminApi.post('/admin/auth/logout');
-    } catch {}
+    } catch { }
     clearAuth();
     toast.success('Logged out.');
     router.push('/login');
@@ -55,12 +55,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         borderBottom: '1px solid var(--border-color)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+        <Link href="/dashboard" className="brand-logo-container">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-satu-album.png" alt="Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.0625rem', color: 'var(--text-primary)' }}>
-            FotoAlbum
-          </span>
+          <img src="/logo-memly.png" alt="Logo" className="brand-logo-img" style={{ width: 28, height: 28 }} />
+          <span className="brand-logo-text" style={{ fontSize: '1.2rem' }}>Memly</span>
         </Link>
         <button
           className="btn btn-ghost btn-sm hide-desktop"
@@ -90,14 +88,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 fontWeight: active ? 600 : 400,
                 fontSize: '0.9rem',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                background: active ? 'rgba(255,255,255,0.05)' : 'transparent',
-                border: '1px solid ' + (active ? 'rgba(255,255,255,0.15)' : 'transparent'),
+                background: active ? 'var(--bg-page)' : 'transparent',
+                border: active ? 'var(--border-hairline)' : '1px solid transparent',
                 transition: 'all 0.15s',
               }}
             >
-              <Icon size={17} style={{ color: active ? '#ffffff' : 'inherit' }} />
+              <Icon size={17} style={{ color: active ? 'var(--color-burnt-orange)' : 'inherit' }} />
               {label}
-              {active && <ChevronRight size={14} style={{ marginLeft: 'auto', color: '#ffffff' }} />}
+              {active && <ChevronRight size={14} style={{ marginLeft: 'auto', color: 'var(--color-burnt-orange)' }} />}
             </Link>
           );
         })}
@@ -175,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Menu size={20} />
           </button>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
-            FotoAlbum
+            Memly
           </span>
         </header>
 

@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Camera, User, Lock, ArrowRight, Loader2, Calendar, MapPin, Users } from 'lucide-react';
+import { User, Lock, ArrowRight, Loader2, Calendar, MapPin, Users, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/lib/api';
 import { useParticipantStore } from '@/store';
 import { formatDate } from '@/lib/utils';
 import type { Event } from '@/types';
+import { ApertureLoader } from '@/components/ui/ApertureLoader';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -59,25 +60,23 @@ function Countdown({ eventDate, startTime, timezone }: { eventDate: string; star
   const formatNum = (n: number) => n.toString().padStart(2, '0');
 
   return (
-    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', margin: '1rem 0' }}>
+    <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', margin: '2rem 0' }}>
       {[
-        { val: timeLeft.days, label: 'DAYS' },
-        { val: timeLeft.hours, label: 'HOURS' },
-        { val: timeLeft.minutes, label: 'MINS' },
-        { val: timeLeft.seconds, label: 'SECS' },
+        { val: timeLeft.days, label: 'days' },
+        { val: timeLeft.hours, label: 'hours' },
+        { val: timeLeft.minutes, label: 'mins' },
+        { val: timeLeft.seconds, label: 'secs' },
       ].map((item, idx) => (
         <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 6,
-            width: 50, height: 44,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-mono)'
+            fontSize: 'var(--font-display-m)',
+            fontFamily: 'var(--font-display)',
+            color: 'var(--text-primary)',
+            lineHeight: 1
           }}>
             {formatNum(item.val)}
           </div>
-          <span style={{ fontSize: '0.55rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '0.25rem', letterSpacing: '0.05em' }}>
+          <span style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginTop: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {item.label}
           </span>
         </div>
@@ -95,7 +94,6 @@ export default function JoinPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   const {
@@ -105,16 +103,6 @@ export default function JoinPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   useEffect(() => { setMounted(true); }, []);
-
-  // Auto-rotate background banner
-  useEffect(() => {
-    if (!event?.banner_photos?.length) return;
-    const total = event.banner_photos.length;
-    const id = setInterval(() => {
-      setActiveBannerIndex((prev) => (prev + 1) % total);
-    }, 4000);
-    return () => clearInterval(id);
-  }, [event?.banner_photos]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -126,10 +114,8 @@ export default function JoinPage() {
         } else {
           router.replace(`/e/${slug}/camera`);
         }
-      }).catch((err: unknown) => {
-        const status = (err as { response?: { status?: number } })?.response?.status;
-        if (status === 404) router.replace(`/e/${slug}/closed`);
-        else router.replace(`/e/${slug}/camera`);
+      }).catch(() => {
+        router.replace(`/e/${slug}/camera`);
       });
       return;
     }
@@ -139,7 +125,6 @@ export default function JoinPage() {
     }).catch((err: unknown) => {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) { router.replace(`/e/${slug}/closed`); return; }
-      console.error('Error loading public event:', err);
       setNotFound(true);
     }).finally(() => { setLoading(false); });
   }, [slug, mounted]);
@@ -157,7 +142,7 @@ export default function JoinPage() {
         const docEl = document.documentElement;
         if (docEl.requestFullscreen) await docEl.requestFullscreen();
         else if ((docEl as any).webkitRequestFullscreen) await (docEl as any).webkitRequestFullscreen();
-      } catch (e) { console.warn('Auto-fullscreen on join failed:', e); }
+      } catch (e) { console.warn('Auto-fullscreen failed:', e); }
       router.push(`/e/${slug}/camera`);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -169,20 +154,18 @@ export default function JoinPage() {
   if (!mounted) return null;
 
   if (loading) {
-    return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="spinner spinner-lg" />
-      </div>
-    );
+    return <ApertureLoader fullscreen text="Menyiapkan Album..." />;
   }
 
   if (notFound || !event) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
-        <Camera size={56} style={{ color: 'var(--text-muted)', marginBottom: '1.25rem' }} />
-        <h1 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Event Not Found</h1>
-        <p style={{ marginBottom: '1.5rem' }}>This event may have been closed or doesn&apos;t exist.</p>
-        <Link href="/" className="btn btn-secondary">Go Home</Link>
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center', background: 'var(--bg-page)' }}>
+        <h1 style={{ fontSize: 'var(--font-display-l)', marginBottom: '1.5rem', fontFamily: 'var(--font-display)' }}>Exhibition Not Found</h1>
+        <p style={{ marginBottom: '2.5rem', color: 'var(--text-secondary)', maxWidth: '360px', fontWeight: 300 }}>This memory archive may have been closed or is temporarily unavailable.</p>
+        <Link href="/" style={{
+          padding: '0.75rem 2rem', border: 'var(--border-strong)', color: 'var(--text-primary)',
+          borderRadius: 'var(--radius-pill)', textDecoration: 'none', fontSize: 'var(--font-body)', fontWeight: 500
+        }}>Go Home</Link>
       </div>
     );
   }
@@ -192,232 +175,195 @@ export default function JoinPage() {
     return null;
   }
 
-  const banners: string[] = event.banner_photos ?? [];
-  const hasBanners = banners.length > 0;
+  const banners = event.banner_photos ?? [];
+  const coverPhoto = banners[0] ?? event.thumbnail_url ?? null;
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', background: 'var(--bg-page)', position: 'relative', overflow: 'hidden' }}>
-
-      {/* ── Background banner slideshow (blurred, dimmed) ── */}
-      {hasBanners && banners.map((url, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={i}
-          src={url}
-          alt=""
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: 'center',
-            opacity: activeBannerIndex === i ? 0.2 : 0,
-            transition: 'opacity 1.2s ease-in-out',
-            zIndex: 0,
-            filter: 'blur(8px) saturate(0.5)',
-            transform: 'scale(1.06)',
-          }}
-        />
-      ))}
-
-      {/* Dark overlay over background */}
+    <div style={{
+      minHeight: '100dvh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-32) var(--space-24)'
+    }}>
       <div style={{
-        position: 'absolute', inset: 0,
-        background: 'rgba(9,9,11,0.85)',
-        zIndex: 1,
-        pointerEvents: 'none',
-      }} />
-
-      {/* Viewfinder crosshair */}
-      <div className="camera-viewfinder-container" style={{ opacity: 0.06, zIndex: 2 }}>
-        <div className="viewfinder-corner viewfinder-corner-tl" />
-        <div className="viewfinder-corner viewfinder-corner-tr" />
-        <div className="viewfinder-corner viewfinder-corner-bl" />
-        <div className="viewfinder-corner viewfinder-corner-br" />
-        <div className="viewfinder-center" />
-      </div>
-
-      {/* Corner meta labels */}
-      <div className="camera-meta-label" style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', opacity: 0.25, zIndex: 3 }}>
-        [ MODE: ANA_B&W ]
-      </div>
-      <div className="camera-meta-label" style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem', opacity: 0.25, zIndex: 3 }}>
-        [ ISO 400 · EXP 24/36 ]
-      </div>
-
-      {/* Main content */}
-      <div style={{ width: '100%', maxWidth: 440, animation: 'slideUp 0.35s var(--ease-smooth) both', zIndex: 5 }}>
-
-        {/* ── Event header card ── */}
-        <div className="card-glass" style={{ padding: '1.75rem', marginBottom: '1rem', textAlign: 'center', border: '1px solid var(--border-color-strong)' }}>
-
-          {hasBanners ? (
-            /* Polaroid photo collage */
-            <div style={{ position: 'relative', height: 126, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-
-              {/* Left polaroid */}
+        width: '100%', maxWidth: '1080px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: 'var(--space-64)', alignItems: 'center'
+      }}>
+        
+        {/* Left Column: Asymmetric Editorial Cover Framed Portrait */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
+          {coverPhoto ? (
+            <div style={{
+              aspectRatio: '4/5', width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden',
+              border: 'var(--border-hairline)', background: 'var(--bg-surface)', position: 'relative',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
               <div style={{
-                position: 'absolute',
-                left: '50%',
-                transform: 'translateX(-104px) rotate(-8deg)',
-                width: 92, height: 80,
-                background: '#f8f8f8',
-                padding: '5px 5px 18px 5px',
-                boxShadow: '0 6px 24px rgba(0,0,0,0.55)',
-                zIndex: 1,
-              }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={banners[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              </div>
-
-              {/* Right polaroid */}
-              {banners.length >= 3 && (
-                <div style={{
-                  position: 'absolute',
-                  left: '50%',
-                  transform: 'translateX(12px) rotate(7deg)',
-                  width: 92, height: 80,
-                  background: '#f8f8f8',
-                  padding: '5px 5px 18px 5px',
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.55)',
-                  zIndex: 1,
-                }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banners[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                </div>
-              )}
-
-              {/* Center polaroid — front, larger */}
-              {banners.length >= 2 && (
-                <div style={{
-                  position: 'relative',
-                  width: 108, height: 96,
-                  background: '#fff',
-                  padding: '6px 6px 22px 6px',
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.65)',
-                  zIndex: 2,
-                  transform: 'rotate(-1.5deg)',
-                }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banners[1]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  <div style={{ position: 'absolute', bottom: 5, left: 0, right: 0, textAlign: 'center', fontSize: '0.48rem', fontFamily: 'var(--font-mono)', color: '#666', letterSpacing: '0.04em' }}>
-                    {new Date(event.event_date).getFullYear()}
-                  </div>
-                </div>
-              )}
+                position: 'absolute', inset: 0,
+                backgroundImage: `url("${coverPhoto}")`,
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                filter: 'sepia(0.12) contrast(0.96)'
+              }} />
             </div>
           ) : (
-            /* Fallback logo image */
-            <img src="/logo-satu-album.png" alt="Logo" style={{ width: 56, height: 56, objectFit: 'contain', margin: '0 auto 1.25rem', display: 'block' }} />
+            <div style={{
+              aspectRatio: '4/5', width: '100%', borderRadius: 'var(--radius-md)',
+              border: 'var(--border-hairline)', background: 'var(--bg-surface)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'
+            }}>
+              <Camera size={36} style={{ strokeWidth: 1 }} />
+            </div>
           )}
-
-          <h1 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-display)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: '0.625rem' }}>
-            {event.title}
-          </h1>
-          <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center', flexWrap: 'wrap', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Calendar size={12} /> {formatDate(event.event_date)}
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Exhibition Frame
             </span>
-            {event.venue && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <MapPin size={12} /> {event.venue}
-              </span>
-            )}
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Users size={12} /> {event.total_participants} JOINED
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--text-muted)' }}>
+              © {new Date().getFullYear()}
             </span>
           </div>
         </div>
 
-        {/* ── Join form / Scheduled waiting screen ── */}
-        <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color-strong)', borderRadius: 'var(--radius-lg)' }}>
-          {event.has_started === false ? (
-            <div style={{ textAlign: 'center' }}>
-              <h2 style={{ fontSize: '1.125rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
-                Event Scheduled
-              </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                The event has not started yet. The photo album will unlock in:
-              </p>
-
-              <Countdown eventDate={event.event_date} startTime={event.start_time} timezone={event.timezone} />
-
-              <div style={{
-                marginTop: '1.75rem',
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                border: '1px solid rgba(234, 179, 8, 0.2)',
-                color: '#eab308',
-                fontSize: '0.7rem',
-                fontFamily: 'var(--font-mono)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.02em',
-                lineHeight: 1.4,
-              }}>
-                // Access locked until scheduled start time
-              </div>
+        {/* Right Column: Dynamic Form Block */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
+          <div>
+            <h1 style={{ fontSize: 'var(--font-display-l)', lineHeight: 1.1, marginBottom: 'var(--space-16)', letterSpacing: '-0.02em' }}>
+              {event.title}
+            </h1>
+            
+            <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Calendar size={12} /> {formatDate(event.event_date)}
+              </span>
+              {event.venue && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <MapPin size={12} /> {event.venue}
+                </span>
+              )}
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Users size={12} /> {event.total_participants} Preserved
+              </span>
             </div>
-          ) : (
-            <>
-              <h2 style={{ fontSize: '1.125rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem', textAlign: 'center' }}>
-                Join the Album
-              </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.5rem' }}>
-                Enter your name to contribute photos and view the gallery.
-              </p>
+          </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div className="form-group">
-                  <label className="form-label camera-meta-label" htmlFor="join-name" style={{ marginBottom: '0.5rem', display: 'block' }}>Your Name</label>
+          <div style={{ borderTop: 'var(--border-hairline)', paddingTop: 'var(--space-24)' }}>
+            {event.has_started === false ? (
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: 'var(--font-heading-s)', fontFamily: 'var(--font-sans)', fontWeight: 600, marginBottom: 'var(--space-8)' }}>
+                  Scheduled Opening
+                </h3>
+                <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', marginBottom: 'var(--space-24)', fontWeight: 300 }}>
+                  This digital archive has not unlocked yet. Join us in:
+                </p>
+
+                <Countdown eventDate={event.event_date} startTime={event.start_time} timezone={event.timezone} />
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-24)' }}>
+                <div>
+                  <h3 style={{ fontSize: 'var(--font-heading-s)', fontFamily: 'var(--font-sans)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>
+                    Enter the Exhibition
+                  </h3>
+                  <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', fontWeight: 300 }}>
+                    Sign your name to view the gallery and contribute your photo memoirs.
+                  </p>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+                  <label htmlFor="join-name" style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                    Your Name
+                  </label>
                   <div style={{ position: 'relative' }}>
-                    <User size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                    <User size={14} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
                     <input
                       id="join-name"
                       type="text"
-                      className={`form-input ${errors.name ? 'error' : ''}`}
-                      style={{ paddingLeft: '2.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color-strong)', fontFamily: 'var(--font-sans)' }}
-                      placeholder="e.g. Sarah Johnson"
+                      className={errors.name ? 'error' : ''}
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: 'var(--border-strong)',
+                        padding: '0.625rem 0.5rem 0.625rem 1.5rem',
+                        fontSize: 'var(--font-body)',
+                        fontFamily: 'var(--font-sans)',
+                        color: 'var(--text-primary)',
+                        outline: 'none',
+                        transition: 'border var(--dur-hover) var(--ease-glide)'
+                      }}
+                      placeholder=" Sarah Johnson"
                       autoFocus
                       autoComplete="name"
                       {...register('name')}
                     />
                   </div>
-                  {errors.name && <span className="form-error" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{errors.name.message}</span>}
+                  {errors.name && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--color-burnt-orange)', marginTop: '0.25rem', display: 'block' }}>{errors.name.message}</span>}
                 </div>
 
                 {event.requires_password && (
-                  <div className="form-group">
-                    <label className="form-label camera-meta-label" htmlFor="join-code" style={{ marginBottom: '0.5rem', display: 'block' }}>
-                      <Lock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-                      Join Code
+                  <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+                    <label htmlFor="join-code" style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                      Access Key
                     </label>
-                    <input
-                      id="join-code"
-                      type="text"
-                      className={`form-input ${errors.join_code ? 'error' : ''}`}
-                      placeholder="Enter the event code"
-                      style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color-strong)', fontFamily: 'var(--font-mono)' }}
-                      {...register('join_code')}
-                    />
-                    {errors.join_code && <span className="form-error" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{errors.join_code.message}</span>}
+                    <div style={{ position: 'relative' }}>
+                      <Lock size={14} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                      <input
+                        id="join-code"
+                        type="text"
+                        className={errors.join_code ? 'error' : ''}
+                        placeholder=" KEY"
+                        style={{
+                          width: '100%',
+                          background: 'transparent',
+                          border: 'none',
+                          borderBottom: 'var(--border-strong)',
+                          padding: '0.625rem 0.5rem 0.625rem 1.5rem',
+                          fontSize: 'var(--font-body)',
+                          fontFamily: 'var(--font-mono)',
+                          color: 'var(--text-primary)',
+                          outline: 'none',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          transition: 'border var(--dur-hover) var(--ease-glide)'
+                        }}
+                        {...register('join_code')}
+                      />
+                    </div>
+                    {errors.join_code && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--color-burnt-orange)', marginTop: '0.25rem', display: 'block' }}>{errors.join_code.message}</span>}
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="btn btn-primary"
                   disabled={isSubmitting}
-                  style={{ width: '100%', height: 48, marginTop: '0.25rem', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'transform 0.1s, box-shadow 0.2s' }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
-                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  style={{
+                    background: 'var(--color-charcoal)',
+                    color: 'var(--color-paper-white)',
+                    width: '100%',
+                    padding: '0.875rem',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: 'var(--font-body)',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    border: 'none',
+                    transition: 'opacity var(--dur-hover) var(--ease-glide)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
-                  {isSubmitting
-                    ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Entering...</>
-                    : <>Join Album <ArrowRight size={16} /></>}
+                  {isSubmitting ? (
+                    <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Entering...</>
+                  ) : (
+                    <>Enter Archive <ArrowRight size={16} /></>
+                  )}
                 </button>
               </form>
-            </>
-          )}
+            )}
+          </div>
         </div>
+
       </div>
     </div>
   );

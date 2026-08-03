@@ -32,100 +32,92 @@ export default function EventClosedPage() {
       overflow: 'hidden',
     }}>
       {/* Meta labels */}
-      <div style={{ position: 'fixed', top: '1.5rem', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', opacity: 0.4, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-        [ END OF ROLL · FILM DEVELOPED ]
+      <div style={{ position: 'fixed', top: '2rem', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--text-muted)', opacity: 0.5, letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+        [ END OF ROLL · MEMORIES ARCHIVED ]
       </div>
-      <div style={{ position: 'fixed', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', opacity: 0.4, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-        [ {new Date().getFullYear()} · MEMORIES CAPTURED ]
+      <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--text-muted)', opacity: 0.5, letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+        [ {new Date().getFullYear()} · RELIVE FOREVER ]
       </div>
 
       {/* Viewfinder corner brackets */}
-      <div style={{ position: 'fixed', top: '2rem', left: '2rem', width: 20, height: 20, borderTop: '2px solid rgba(255,255,255,0.15)', borderLeft: '2px solid rgba(255,255,255,0.15)' }} />
-      <div style={{ position: 'fixed', top: '2rem', right: '2rem', width: 20, height: 20, borderTop: '2px solid rgba(255,255,255,0.15)', borderRight: '2px solid rgba(255,255,255,0.15)' }} />
-      <div style={{ position: 'fixed', bottom: '2rem', left: '2rem', width: 20, height: 20, borderBottom: '2px solid rgba(255,255,255,0.15)', borderLeft: '2px solid rgba(255,255,255,0.15)' }} />
-      <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', width: 20, height: 20, borderBottom: '2px solid rgba(255,255,255,0.15)', borderRight: '2px solid rgba(255,255,255,0.15)' }} />
+      <div style={{ position: 'fixed', top: '2rem', left: '2rem', width: 24, height: 24, borderTop: 'var(--border-hairline)', borderLeft: 'var(--border-hairline)' }} />
+      <div style={{ position: 'fixed', top: '2rem', right: '2rem', width: 24, height: 24, borderTop: 'var(--border-hairline)', borderRight: 'var(--border-hairline)' }} />
+      <div style={{ position: 'fixed', bottom: '2rem', left: '2rem', width: 24, height: 24, borderBottom: 'var(--border-hairline)', borderLeft: 'var(--border-hairline)' }} />
+      <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', width: 24, height: 24, borderBottom: 'var(--border-hairline)', borderRight: 'var(--border-hairline)' }} />
 
       {/* Main content */}
       <div style={{
         width: '100%', maxWidth: 480,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: '2rem',
-        animation: 'slideUp 0.5s var(--ease-smooth) both',
+        gap: 'var(--space-32)',
+        textAlign: 'center'
       }}>
-        {/* Camera icon with orbit dots */}
-        <div style={{ position: 'relative' }}>
-          <div style={{
-            width: 96, height: 96, borderRadius: '50%',
-            border: '2px solid var(--text-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Camera size={36} color="var(--text-primary)" strokeWidth={1.5} />
-          </div>
-          <div style={{
-            position: 'absolute', bottom: -4, right: -4,
-            width: 28, height: 28, borderRadius: '50%',
-            background: 'var(--bg-page)',
-            border: '2px solid var(--text-primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Heart size={12} color="var(--text-primary)" fill="var(--text-primary)" />
-          </div>
+        {/* Camera icon frame */}
+        <div style={{
+          width: 80, height: 80, borderRadius: '50%',
+          border: 'var(--border-strong)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--text-primary)',
+          background: 'var(--bg-surface)'
+        }}>
+          <Camera size={30} style={{ strokeWidth: 1.25 }} />
         </div>
 
         {/* Text block */}
-        <div style={{ textAlign: 'center' }}>
+        <div>
           <p style={{
-            fontFamily: 'var(--font-mono)', fontSize: '0.7rem',
-            color: 'var(--text-muted)', letterSpacing: '0.15em',
-            textTransform: 'uppercase', marginBottom: '1rem', opacity: 0.7,
+            fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)',
+            color: 'var(--color-vintage-mustard)', letterSpacing: '0.15em',
+            textTransform: 'uppercase', marginBottom: 'var(--space-12)', fontWeight: 600
           }}>
-            // event · concluded
+            Concluded
           </p>
           <h1 style={{
-            fontSize: 'clamp(1.75rem, 5vw, 2.75rem)',
-            fontFamily: 'var(--font-display)', fontWeight: 900,
-            lineHeight: 1.15, letterSpacing: '-0.03em',
-            marginBottom: '0.875rem',
+            fontSize: 'var(--font-display-l)',
+            fontFamily: 'var(--font-display)',
+            lineHeight: 1.15, letterSpacing: '-0.02em',
+            marginBottom: 'var(--space-16)',
+            color: 'var(--text-primary)'
           }}>
             {event ? (
-              <>Terima kasih telah hadir di <br /><span style={{ color: 'var(--text-secondary)' }}>{event.title}</span></>
+              <>Thank you for attending<br /><span style={{ fontStyle: 'italic', color: 'var(--color-burnt-orange)' }}>{event.title}</span></>
             ) : (
-              'Terima kasih sudah hadir!'
+              'Thank you for attending!'
             )}
           </h1>
           <p style={{
-            fontSize: '1rem', color: 'var(--text-secondary)',
-            lineHeight: 1.65, maxWidth: 360, margin: '0 auto',
+            fontSize: 'var(--font-body)', color: 'var(--text-secondary)',
+            lineHeight: 1.7, maxWidth: 380, margin: '0 auto', fontWeight: 300
           }}>
             {event
-              ? `Acara pada ${formatDate(event.event_date)} ini telah berakhir. Semua momen indah kalian telah berhasil diabadikan bersama.`
-              : 'Acara ini telah berakhir. Semua momen indah telah berhasil diabadikan bersama.'}
+              ? `This gathering on ${formatDate(event.event_date)} has ended. Every beautiful moment captured by you and the guests has been permanently archived.`
+              : 'This gathering has ended. Every beautiful moment has been permanently archived.'}
           </p>
         </div>
 
         {/* Stats strip */}
         {event && (
           <div style={{
-            display: 'flex', gap: '2rem', justifyContent: 'center',
-            padding: '1.125rem 2.5rem',
-            border: '1px solid var(--border-color)',
+            display: 'flex', gap: '3rem', justifyContent: 'center',
+            padding: 'var(--space-16) var(--space-32)',
+            border: 'var(--border-hairline)',
             borderRadius: 'var(--radius-md)',
-            background: 'rgba(255,255,255,0.02)',
+            background: 'var(--bg-surface)',
           }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', marginBottom: '0.375rem' }}>
-                <ImageIcon size={11} /> FOTO
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-muted)', fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', letterSpacing: '0.15em', marginBottom: 'var(--space-4)', textTransform: 'uppercase' }}>
+                <ImageIcon size={10} /> Photos
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
+              <div style={{ fontSize: 'var(--font-display-m)', fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {event.total_photos}
               </div>
             </div>
-            <div style={{ width: 1, background: 'var(--border-color)' }} />
+            <div style={{ width: 1, background: 'var(--border-color)', alignSelf: 'stretch' }} />
             <div style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', marginBottom: '0.375rem' }}>
-                <Users size={11} /> TAMU
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-muted)', fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', letterSpacing: '0.15em', marginBottom: 'var(--space-4)', textTransform: 'uppercase' }}>
+                <Users size={10} /> Guests
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
+              <div style={{ fontSize: 'var(--font-display-m)', fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {event.total_participants}
               </div>
             </div>
@@ -136,33 +128,41 @@ export default function EventClosedPage() {
         {event?.allow_gallery && (
           <Link
             href={`/e/${slug}/gallery`}
-            className="btn btn-secondary"
             style={{
-              fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
-              letterSpacing: '0.05em', fontSize: '0.8rem',
-              padding: '0.625rem 1.5rem',
+              background: 'var(--color-charcoal)',
+              color: 'var(--color-paper-white)',
+              padding: '0.75rem 2rem',
+              borderRadius: 'var(--radius-pill)',
+              fontSize: 'var(--font-body)',
+              textDecoration: 'none',
+              fontWeight: 500,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'opacity var(--dur-hover) var(--ease-glide)'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
-            <ImageIcon size={14} />
-            Lihat Galeri Kenangan
+            <ImageIcon size={14} /> Relive Memories
           </Link>
         )}
 
         {/* Film strip decoration */}
-        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.15 }}>
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.08 }}>
           <div style={{ flex: 1, height: 1, background: 'var(--text-primary)' }} />
           {[...Array(5)].map((_, i) => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: 2, border: '1px solid var(--text-primary)' }} />
+            <div key={i} style={{ width: 6, height: 6, borderRadius: 1, border: '1px solid var(--text-primary)' }} />
           ))}
           <div style={{ flex: 1, height: 1, background: 'var(--text-primary)' }} />
         </div>
 
         <p style={{
-          fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
-          color: 'var(--text-muted)', opacity: 0.45,
+          fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)',
+          color: 'var(--text-muted)', opacity: 0.5,
           letterSpacing: '0.08em', textAlign: 'center',
         }}>
-          Powered by FotoAlbum · dibuat dengan <Heart size={11} style={{ display: 'inline', verticalAlign: 'middle' }} fill="currentColor" />
+          Powered by Memly
         </p>
       </div>
     </div>

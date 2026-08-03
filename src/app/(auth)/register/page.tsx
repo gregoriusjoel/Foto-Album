@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Camera, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { useAuthStore } from '@/store';
@@ -50,7 +50,7 @@ export default function RegisterPage() {
       );
       const { user, token } = res.data.data;
       setAuth(user, token);
-      toast.success(`Welcome to FotoAlbum, ${user.name}!`);
+      toast.success(`Welcome to Memly, ${user.name}!`);
       router.push('/dashboard');
     } catch (err: unknown) {
       const msg =
@@ -66,87 +66,116 @@ export default function RegisterPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1.5rem',
+      padding: '2rem',
       background: 'var(--bg-page)',
-      position: 'relative',
     }}>
-      <div style={{
-        position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '600px', height: '400px',
-        background: 'radial-gradient(ellipse, rgba(255,255,255,0.04) 0%, transparent 65%)',
-        pointerEvents: 'none',
-      }} />
-
-      <div style={{ width: '100%', maxWidth: 440, animation: 'slideUp 0.35s var(--ease-smooth) both' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-satu-album.png" alt="Logo" style={{ width: 40, height: 40, objectFit: 'contain' }} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.375rem', color: 'var(--text-primary)' }}>
-              FotoAlbum
-            </span>
+      <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
+        {/* Header Block */}
+        <div style={{ textAlign: 'center' }}>
+          <Link href="/" className="brand-logo-container" style={{ justifyContent: 'center', marginBottom: 'var(--space-12)' }}>
+            <img src="/logo-memly.png" alt="Logo" className="brand-logo-img" style={{ width: 36, height: 36 }} />
+            <span className="brand-logo-text" style={{ fontSize: '1.65rem' }}>Memly</span>
           </Link>
-          <p style={{ marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9375rem' }}>
-            Create your organizer account
+          <h1 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', marginBottom: 'var(--space-8)' }}>
+            Get Started
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-small)', fontWeight: 300 }}>
+            Create an organizer account to archive life's journeys.
           </p>
         </div>
 
-        <div className="card" style={{ padding: '2rem' }}>
-          <h1 style={{ fontSize: '1.5rem', marginBottom: '1.75rem', textAlign: 'center' }}>Get Started</h1>
+        {/* Form Block */}
+        <div style={{
+          background: 'var(--bg-surface)',
+          border: 'var(--border-hairline)',
+          borderRadius: 'var(--radius-lg)',
+          padding: 'var(--space-32)',
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-20)' }}>
 
-          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-name">Full Name</label>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <label htmlFor="reg-name" style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Full Name
+              </label>
               <div style={{ position: 'relative' }}>
-                <User size={16} style={{
-                  position: 'absolute', left: '0.875rem', top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none',
-                }} />
+                <User size={14} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
                 <input
                   id="reg-name"
                   type="text"
-                  className={`form-input ${errors.name ? 'error' : ''}`}
-                  style={{ paddingLeft: '2.5rem' }}
-                  placeholder="Your full name"
+                  className={errors.name ? 'error' : ''}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: 'var(--border-strong)',
+                    padding: '0.625rem 0.5rem 0.625rem 1.5rem',
+                    fontSize: 'var(--font-body)',
+                    fontFamily: 'var(--font-sans)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    transition: 'border var(--dur-hover) var(--ease-glide)'
+                  }}
+                  placeholder="Your Name"
                   autoComplete="name"
                   {...register('name')}
                 />
               </div>
-              {errors.name && <span className="form-error">{errors.name.message}</span>}
+              {errors.name && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--color-burnt-orange)', marginTop: '0.25rem', display: 'block' }}>{errors.name.message}</span>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-email">Email</label>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <label htmlFor="reg-email" style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Email
+              </label>
               <div style={{ position: 'relative' }}>
-                <Mail size={16} style={{
-                  position: 'absolute', left: '0.875rem', top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none',
-                }} />
+                <Mail size={14} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
                 <input
                   id="reg-email"
                   type="email"
-                  className={`form-input ${errors.email ? 'error' : ''}`}
-                  style={{ paddingLeft: '2.5rem' }}
+                  className={errors.email ? 'error' : ''}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: 'var(--border-strong)',
+                    padding: '0.625rem 0.5rem 0.625rem 1.5rem',
+                    fontSize: 'var(--font-body)',
+                    fontFamily: 'var(--font-sans)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    transition: 'border var(--dur-hover) var(--ease-glide)'
+                  }}
                   placeholder="you@example.com"
                   autoComplete="email"
                   {...register('email')}
                 />
               </div>
-              {errors.email && <span className="form-error">{errors.email.message}</span>}
+              {errors.email && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--color-burnt-orange)', marginTop: '0.25rem', display: 'block' }}>{errors.email.message}</span>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-password">Password</label>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <label htmlFor="reg-password" style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Password
+              </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={16} style={{
-                  position: 'absolute', left: '0.875rem', top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none',
-                }} />
+                <Lock size={14} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
                 <input
                   id="reg-password"
                   type={showPw ? 'text' : 'password'}
-                  className={`form-input ${errors.password ? 'error' : ''}`}
-                  style={{ paddingLeft: '2.5rem', paddingRight: '2.75rem' }}
+                  className={errors.password ? 'error' : ''}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: 'var(--border-strong)',
+                    padding: '0.625rem 2.25rem 0.625rem 1.5rem',
+                    fontSize: 'var(--font-body)',
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    transition: 'border var(--dur-hover) var(--ease-glide)'
+                  }}
                   placeholder="Min. 8 characters"
                   autoComplete="new-password"
                   {...register('password')}
@@ -155,60 +184,87 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPw(!showPw)}
                   style={{
-                    position: 'absolute', right: '0.875rem', top: '50%',
+                    position: 'absolute', right: 0, top: '50%',
                     transform: 'translateY(-50%)', background: 'none',
                     border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0,
                   }}
                   aria-label="Toggle password visibility"
                 >
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
-              {errors.password && <span className="form-error">{errors.password.message}</span>}
+              {errors.password && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--color-burnt-orange)', marginTop: '0.25rem', display: 'block' }}>{errors.password.message}</span>}
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-confirm">Confirm Password</label>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <label htmlFor="reg-confirm" style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Confirm Password
+              </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={16} style={{
-                  position: 'absolute', left: '0.875rem', top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none',
-                }} />
+                <Lock size={14} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
                 <input
                   id="reg-confirm"
                   type={showPw ? 'text' : 'password'}
-                  className={`form-input ${errors.password_confirmation ? 'error' : ''}`}
-                  style={{ paddingLeft: '2.5rem' }}
+                  className={errors.password_confirmation ? 'error' : ''}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: 'var(--border-strong)',
+                    padding: '0.625rem 0.5rem 0.625rem 1.5rem',
+                    fontSize: 'var(--font-body)',
+                    fontFamily: 'var(--font-sans)',
+                    color: 'var(--text-primary)',
+                    outline: 'none',
+                    transition: 'border var(--dur-hover) var(--ease-glide)'
+                  }}
                   placeholder="Repeat your password"
                   autoComplete="new-password"
                   {...register('password_confirmation')}
                 />
               </div>
-              {errors.password_confirmation && (
-                <span className="form-error">{errors.password_confirmation.message}</span>
-              )}
+              {errors.password_confirmation && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--color-burnt-orange)', marginTop: '0.25rem', display: 'block' }}>{errors.password_confirmation.message}</span>}
             </div>
 
             <button
               type="submit"
-              className="btn btn-primary"
               disabled={isSubmitting}
-              style={{ width: '100%', height: 46, marginTop: '0.5rem' }}
+              style={{
+                background: 'var(--color-charcoal)',
+                color: 'var(--color-paper-white)',
+                width: '100%',
+                padding: '0.875rem',
+                borderRadius: 'var(--radius-pill)',
+                fontSize: 'var(--font-body)',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                border: 'none',
+                marginTop: 'var(--space-12)',
+                transition: 'opacity var(--dur-hover) var(--ease-glide)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
-              {isSubmitting
-                ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Creating account…</>
-                : <>Create Account <ArrowRight size={16} /></>}
+              {isSubmitting ? (
+                <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Creating account...</>
+              ) : (
+                <>Create Account <ArrowRight size={16} /></>
+              )}
             </button>
           </form>
 
-          <div className="divider" />
-
-          <p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            Already have an account?{' '}
-            <Link href="/login" style={{ color: 'var(--color-brand-400)', fontWeight: 600 }}>
-              Sign in
-            </Link>
-          </p>
+          <div style={{ borderTop: 'var(--border-hairline)', marginTop: 'var(--space-24)', paddingTop: 'var(--space-16)', textAlign: 'center' }}>
+            <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', fontWeight: 300 }}>
+              Already have an account?{' '}
+              <Link href="/login" style={{ color: 'var(--color-burnt-orange)', fontWeight: 500 }}>
+                Sign In
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

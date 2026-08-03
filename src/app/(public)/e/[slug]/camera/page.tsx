@@ -16,6 +16,7 @@ import { useCapture, applyFiltersToImageData } from '@/hooks/useCapture';
 import { useCameraUpload } from '@/hooks/useCameraUpload';
 import type { Event } from '@/types';
 import { CustomAudioPlayer } from '@/components/ui/CustomAudioPlayer';
+import { ApertureLoader } from '@/components/ui/ApertureLoader';
 
 const FILM_FILTERS = [
   { id: 'normal', name: 'NORMAL', filter: 'none' },
@@ -60,7 +61,7 @@ export default function GuestCameraPage() {
 
   // Hooks
   const { videoRef, state: cam, switchCamera, toggleFlash, startCamera } = useCamera(false);
-  const { capture, isCapturing, lastCapture, setLastCapture } = useCapture({ videoRef, persistedKey: `fotoalbum_last_capture_${slug}` });
+  const { capture, isCapturing, lastCapture, setLastCapture } = useCapture({ videoRef, persistedKey: `memly_last_capture_${slug}` });
   const { upload, uploadState } = useCameraUpload(slug);
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -108,6 +109,7 @@ export default function GuestCameraPage() {
   }, []);
 
   const enterFullscreen = async () => {
+    setShowFullscreenOverlay(false);
     try {
       const docEl = document.documentElement;
       if (docEl.requestFullscreen) {
@@ -118,7 +120,6 @@ export default function GuestCameraPage() {
     } catch (e) {
       console.warn('Fullscreen request failed:', e);
     }
-    setShowFullscreenOverlay(false);
     // Trigger camera start now that the video element is mounting
     startCamera(cam.facing);
   };
@@ -140,10 +141,7 @@ export default function GuestCameraPage() {
 
   const loadEventDetails = async () => {
     try {
-      const [evtRes, cntRes] = await Promise.all([
-        api.get<{ data: Event }>(`/public/events/${slug}`),
-        api.get<{ data: { total_photos: number } }>(`/public/events/${slug}/gallery/count`),
-      ]);
+      const evtRes = await api.get<{ data: Event }>(`/public/events/${slug}`);
       const ev = evtRes.data.data;
       // Guard: redirect to thank-you page if event is no longer accepting uploads
       // Keep loading=true so camera UI never flashes before redirect
@@ -152,7 +150,16 @@ export default function GuestCameraPage() {
         return;
       }
       setEvent(ev);
-      setPhotoCount(cntRes.data.data.total_photos);
+
+      // Fetch photo count separately to avoid concurrent-request issues with php artisan serve
+      try {
+        const cntRes = await api.get<{ data: { total_photos: number } }>(`/public/events/${slug}/gallery/count`);
+        setPhotoCount(cntRes.data.data.total_photos);
+      } catch {
+        // Non-critical — camera still works without photo count
+        setPhotoCount(0);
+      }
+
       setLoading(false);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -392,55 +399,100 @@ export default function GuestCameraPage() {
         padding: '2rem',
         textAlign: 'center',
         zIndex: 100,
-        fontFamily: 'var(--font-sans)',
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}>
-        {/* Viewfinder background */}
-        <div className="camera-viewfinder-container" style={{ opacity: 0.15 }}>
-          <div className="viewfinder-corner viewfinder-corner-tl" />
-          <div className="viewfinder-corner viewfinder-corner-tr" />
-          <div className="viewfinder-corner viewfinder-corner-bl" />
-          <div className="viewfinder-corner viewfinder-corner-br" />
-          <div className="viewfinder-center" />
-        </div>
+        {/* Viewfinder corners — decorative only */}
+        {['tl','tr','bl','br'].map((pos) => (
+          <div key={pos} style={{
+            position: 'absolute',
+            width: 28,
+            height: 28,
+            borderColor: 'rgba(255,255,255,0.25)',
+            borderStyle: 'solid',
+            borderTopWidth:    pos.startsWith('t') ? 1.5 : 0,
+            borderBottomWidth: pos.startsWith('b') ? 1.5 : 0,
+            borderLeftWidth:   pos.endsWith('l')   ? 1.5 : 0,
+            borderRightWidth:  pos.endsWith('r')   ? 1.5 : 0,
+            top:    pos.startsWith('t') ? '1.25rem' : undefined,
+            bottom: pos.startsWith('b') ? '1.25rem' : undefined,
+            left:   pos.endsWith('l')   ? '1.25rem' : undefined,
+            right:  pos.endsWith('r')   ? '1.25rem' : undefined,
+          }} />
+        ))}
 
-        <div style={{ maxWidth: 320, animation: 'slideUp 0.4s var(--ease-smooth) both' }}>
+        <div style={{ maxWidth: 320, width: '100%', animation: 'slideUp 0.4s ease both' }}>
+          {/* Camera icon */}
           <div style={{
-            width: 72,
-            height: 72,
+            width: 80,
+            height: 80,
             borderRadius: '50%',
-            background: 'rgba(255,255,255,0.08)',
-            border: '2px solid #fff',
+            background: 'rgba(255,255,255,0.1)',
+            border: '2px solid rgba(255,255,255,0.7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 1.5rem',
+            margin: '0 auto 1.75rem',
           }}>
-            <Camera size={32} color="#fff" />
+            <Camera size={34} color="#ffffff" />
           </div>
-          
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-            {event?.title ?? 'Disposable Camera'}
+
+          {/* Event title */}
+          <h2 style={{
+            fontSize: '1.1rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: '#ffffff',
+            marginBottom: '0.5rem',
+            lineHeight: 1.3,
+          }}>
+            {event?.title ?? slug?.replace(/-/g, ' ').toUpperCase() ?? 'Camera'}
           </h2>
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: '2rem' }}>
-            Tap below to open the camera in fullscreen mode for the best shooting experience.
+
+          {/* Subtitle */}
+          <p style={{
+            fontSize: '0.875rem',
+            color: 'rgba(255,255,255,0.55)',
+            lineHeight: 1.65,
+            marginBottom: '2rem',
+          }}>
+            Tap the button below to open your disposable camera.
           </p>
 
+          {/* CTA Button — fully explicit styles, no CSS class dependency */}
           <button
             onClick={enterFullscreen}
-            className="btn btn-primary btn-lg"
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
-              boxShadow: 'var(--shadow-glow)',
-              fontFamily: 'var(--font-mono)',
+              padding: '0.9rem 1.5rem',
+              background: '#ffffff',
+              color: '#0c0c0f',
+              border: 'none',
+              borderRadius: '12px',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 0 24px rgba(255,255,255,0.15)',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 32px rgba(255,255,255,0.25)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(255,255,255,0.15)';
             }}
           >
-            Start Camera <ArrowRight size={16} />
+            <Camera size={18} />
+            Open Camera
           </button>
         </div>
       </div>
@@ -448,11 +500,7 @@ export default function GuestCameraPage() {
   }
 
   if (loading) {
-    return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
-        <div className="spinner spinner-lg" />
-      </div>
-    );
+    return <ApertureLoader fullscreen text="Membuka Kamera..." />;
   }
 
   // Ring circumference calculations
@@ -937,7 +985,7 @@ export default function GuestCameraPage() {
             onClick={() => setMode('voice')}
             style={{
               background: 'none', border: 'none',
-              color: mode === 'voice' ? '#3b82f6' : 'rgba(255,255,255,0.4)',
+              color: mode === 'voice' ? 'var(--color-burnt-orange)' : 'rgba(255,255,255,0.4)',
               fontSize: '0.75rem', fontWeight: 800, fontFamily: 'var(--font-mono)',
               textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer',
               transition: 'color 0.15s ease',
@@ -946,7 +994,7 @@ export default function GuestCameraPage() {
           >
             Retro Voice
             {mode === 'voice' && (
-              <div style={{ width: 12, height: 2, background: '#3b82f6', margin: '4px auto 0' }} />
+              <div style={{ width: 12, height: 2, background: 'var(--color-burnt-orange)', margin: '4px auto 0' }} />
             )}
           </button>
         </div>
@@ -962,7 +1010,7 @@ export default function GuestCameraPage() {
                 <img
                   src={lastCapture}
                   alt=""
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '2px solid #fff' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '2px solid var(--color-paper-white)' }}
                 />
               </Link>
             ) : (

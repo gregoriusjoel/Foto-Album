@@ -30,46 +30,50 @@ export default function DashboardPage() {
   }, []);
 
   const statCards = [
-    { label: 'Total Events',    value: stats?.total_events ?? 0,        icon: Calendar, color: '#a1a1aa' },
-    { label: 'Photos Taken',    value: stats?.total_photos ?? 0,         icon: Image,    color: '#ffffff' },
-    { label: 'Participants',    value: stats?.total_participants ?? 0,    icon: Users,    color: '#d1d1d6' },
-    { label: 'Storage Used',    value: formatMb(stats?.storage_used_mb ?? 0), icon: HardDrive, color: '#e4e4e7', isString: true },
+    { label: 'Total Events',    value: stats?.total_events ?? 0,        icon: Calendar, color: 'var(--color-burnt-orange)' },
+    { label: 'Photos Taken',    value: stats?.total_photos ?? 0,         icon: Image,    color: 'var(--color-vintage-mustard)' },
+    { label: 'Participants',    value: stats?.total_participants ?? 0,    icon: Users,    color: 'var(--color-olive-sage)' },
+    { label: 'Storage Used',    value: formatMb(stats?.storage_used_mb ?? 0), icon: HardDrive, color: 'var(--color-vintage-brown)', isString: true },
   ];
 
   return (
-    <div className="admin-page" style={{ maxWidth: 1400 }}>
+    <div className="admin-page" style={{ maxWidth: 1400, padding: 'var(--space-32) var(--space-24)' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--space-32)', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>
+          <h1 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', marginBottom: '0.25rem' }}>
             Good {getGreeting()},{' '}
-            <span className="gradient-text">{user?.name?.split(' ')[0]}</span> <Sparkles size={20} style={{ display: 'inline', verticalAlign: 'middle', color: 'var(--text-secondary)' }} />
+            <span style={{ fontStyle: 'italic', color: 'var(--color-burnt-orange)' }}>{user?.name?.split(' ')[0]}</span>
           </h1>
-          <p style={{ fontSize: '0.9375rem' }}>Here&apos;s what&apos;s happening with your events.</p>
+          <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', fontWeight: 300 }}>Here&apos;s what&apos;s happening with your memory archives.</p>
         </div>
-        <Link href="/events/new" className="btn btn-primary">
+        <Link href="/events/new" className="btn btn-primary" style={{ borderRadius: 'var(--radius-pill)', padding: '0.625rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Plus size={16} /> New Event
         </Link>
       </div>
 
       {/* Stat Cards */}
-      <div className="admin-stat-grid" style={{ marginBottom: '2rem' }}>
+      <div className="admin-stat-grid" style={{ marginBottom: 'var(--space-32)' }}>
         {statCards.map((s, i) => (
-          <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
+          <div key={i} className="card" style={{
+            display: 'flex', alignItems: 'center', gap: '1.25rem', padding: 'var(--space-24)',
+            background: 'var(--bg-surface)', border: 'var(--border-hairline)', borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-xs)'
+          }}>
             <div style={{
-              width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-              background: `${s.color}1a`,
-              border: `1px solid ${s.color}33`,
+              width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+              background: 'var(--bg-page)',
+              border: 'var(--border-hairline)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: s.color,
             }}>
-              <s.icon size={22} />
+              <s.icon size={18} />
             </div>
             <div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.125rem', fontWeight: 500 }}>
+              <div style={{ fontSize: 'var(--font-caption)', color: 'var(--text-muted)', marginBottom: 'var(--space-4)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                 {s.label}
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
+              <div style={{ fontSize: 'var(--font-display-m)', fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {loading ? <span className="skeleton" style={{ width: 60, height: 24, display: 'block' }} /> : s.isString ? s.value : s.value.toLocaleString()}
               </div>
             </div>
@@ -78,14 +82,17 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Events */}
-      <div className="card" style={{ padding: 0 }}>
+      <div className="card" style={{
+        padding: 0, background: 'var(--bg-card)', border: 'var(--border-hairline)',
+        borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xs)', overflow: 'hidden'
+      }}>
         <div style={{
-          padding: '1.25rem 1.5rem',
-          borderBottom: '1px solid var(--border-color)',
+          padding: 'var(--space-16) var(--space-24)',
+          borderBottom: 'var(--border-hairline)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <h2 style={{ fontSize: '1.0625rem' }}>Recent Events</h2>
-          <Link href="/events" className="btn btn-ghost btn-sm" style={{ fontSize: '0.8125rem' }}>
+          <h2 style={{ fontSize: 'var(--font-heading-s)', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)' }}>Recent Events</h2>
+          <Link href="/events" className="btn btn-ghost btn-sm" style={{ fontSize: 'var(--font-caption)' }}>
             View all <ArrowRight size={14} />
           </Link>
         </div>
@@ -99,7 +106,7 @@ export default function DashboardPage() {
         ) : events.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
             <Camera size={40} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem' }} />
-            <p>No events yet. <Link href="/events/new" style={{ color: 'var(--color-brand-400)' }}>Create your first event</Link></p>
+            <p>No events yet. <Link href="/events/new" style={{ color: 'var(--color-burnt-orange)' }}>Create your first event</Link></p>
           </div>
         ) : (
           <div>
@@ -112,20 +119,20 @@ export default function DashboardPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '1rem',
                     padding: '1rem 1.5rem',
-                    borderBottom: i < events.length - 1 ? '1px solid var(--border-color)' : 'none',
+                    borderBottom: i < events.length - 1 ? 'var(--border-hairline)' : 'none',
                     textDecoration: 'none',
-                    transition: 'background 0.15s',
+                    transition: 'background var(--dur-hover) var(--ease-glide)',
                     color: 'inherit',
                   }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   <div style={{
-                    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid var(--border-color-medium)',
+                    width: 40, height: 40, borderRadius: 'var(--radius-sm)', flexShrink: 0,
+                    background: 'var(--bg-surface)',
+                    border: 'var(--border-hairline)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                   }}>
                     <Camera size={18} />
                   </div>

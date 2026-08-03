@@ -51,7 +51,7 @@ export default async function Image({
 
   const rawBannerUrl = event?.banner_photos?.[0] ?? event?.thumbnail_url ?? null;
   const bannerSrc    = rawBannerUrl ? await fetchImageAsDataUrl(rawBannerUrl) : null;
-  const title        = event?.title ?? 'FotoAlbum';
+  const title        = event?.title ?? 'Memly';
   const venue        = event?.venue ?? null;
 
 
@@ -130,7 +130,7 @@ export default async function Image({
               letterSpacing: '-0.3px',
             }}
           >
-            fotoalbums.vercel.app
+            memly.id
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export default async function Image({
           )}
         </div>
 
-        {/* ── FotoAlbum logo watermark (bottom-right) ── */}
+        {/* ── Memly logo watermark (bottom-right) ── */}
         <div
           style={{
             position: 'absolute',
@@ -198,7 +198,7 @@ export default async function Image({
               letterSpacing: '0.5px',
             }}
           >
-            FotoAlbum
+            Memly
           </div>
         </div>
       </div>

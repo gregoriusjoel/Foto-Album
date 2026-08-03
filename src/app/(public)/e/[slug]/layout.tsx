@@ -35,8 +35,8 @@ export async function generateMetadata({
 
   if (!event) {
     return {
-      title: 'Event — FotoAlbum',
-      description: 'Lihat dan kirim foto bersama di FotoAlbum.',
+      title: 'Event — Memly',
+      description: 'Lihat dan bagikan momen bersama di Memly.',
     };
   }
 
@@ -47,7 +47,7 @@ export async function generateMetadata({
   const venue = event.venue ? ` · ${event.venue}` : '';
   const description =
     event.description?.trim() ||
-    `Bergabung & kirim foto untuk event "${event.title}"${venue}. Buka FotoAlbum sekarang!`;
+    `Bergabung & kirim foto untuk event "${event.title}"${venue}. Buka Memly sekarang!`;
 
   const pageUrl = `https://fotoalbums.vercel.app/e/${slug}`;
 
@@ -57,8 +57,8 @@ export async function generateMetadata({
     openGraph: {
       type: 'website',
       url: pageUrl,
-      siteName: 'FotoAlbum',
-      title: `${title} — FotoAlbum`,
+      siteName: 'Memly',
+      title: `${title} — Memly`,
       description,
       ...(ogImage
         ? {
@@ -75,7 +75,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: ogImage ? 'summary_large_image' : 'summary',
-      title: `${title} — FotoAlbum`,
+      title: `${title} — Memly`,
       description,
       ...(ogImage ? { images: [ogImage] } : {}),
     },

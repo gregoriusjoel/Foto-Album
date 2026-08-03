@@ -121,7 +121,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ padding: '2rem 2.5rem', width: '100%', maxWidth: 800, boxSizing: 'border-box' }}>
+    <div className="admin-page" style={{ maxWidth: 800 }}>
       <h1 style={{ fontSize: '1.75rem', marginBottom: '0.375rem' }}>Account Settings</h1>
       <p style={{ marginBottom: '2rem' }}>Manage your profile information and security password.</p>
 

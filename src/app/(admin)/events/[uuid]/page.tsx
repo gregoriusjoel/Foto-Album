@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { formatDate, getEventStatusBadge, formatMb } from '@/lib/utils';
 import type { Event, Photo, DownloadJob } from '@/types';
+import { ApertureLoader } from '@/components/ui/ApertureLoader';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -97,7 +98,7 @@ export default function EventDetailPage() {
     // Load the logo first
     const logoImg = new window.Image();
     logoImg.crossOrigin = "anonymous";
-    logoImg.src = "/logo-satu-album.png";
+    logoImg.src = "/logo-memly.png";
 
     logoImg.onload = () => {
       const svgData = new XMLSerializer().serializeToString(svg);
@@ -340,8 +341,8 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
-        <div className="spinner spinner-lg" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 350 }}>
+        <ApertureLoader size={80} text="Memuat Detail Event..." />
       </div>
     );
   }

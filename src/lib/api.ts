@@ -5,9 +5,6 @@ const getApiUrl = (): string => {
   if (envUrl) {
     return envUrl.endsWith('/api/v1') ? envUrl : `${envUrl.replace(/\/$/, '')}/api/v1`;
   }
-  if (typeof window !== 'undefined') {
-    return '/api/v1';
-  }
   return 'http://localhost:8000/api/v1';
 };
 

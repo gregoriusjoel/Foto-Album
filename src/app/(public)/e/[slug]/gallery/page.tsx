@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Lottie from 'lottie-react';
 import likeHeartAnimation from '@/app/like-heart.json';
+import { ApertureLoader } from '@/components/ui/ApertureLoader';
 import Link from 'next/link';
 import {
   Camera, Images, Users, X, ChevronLeft, ChevronRight, ZoomIn, Heart,
@@ -268,7 +269,7 @@ export default function GalleryPage() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: `Photo from ${event?.title || 'FotoAlbum'}`,
+          title: `Photo from ${event?.title || 'Memly'}`,
           text: `Check out this photo uploaded by ${photo.photographer ?? 'Guest'}!`,
           url: shareUrl,
         });
@@ -533,6 +534,9 @@ export default function GalleryPage() {
   }, [lightbox, photos]);
 
   if (!mounted || !isJoined(slug)) return null;
+  if (!event) {
+    return <ApertureLoader fullscreen text="Membuka Galeri..." />;
+  }
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--bg-page)' }}>
@@ -548,14 +552,14 @@ export default function GalleryPage() {
                     setSelectedPhotoIds([]);
                   }}
                   style={{
-                    background: 'transparent', border: 'none', color: '#fff',
+                    background: 'transparent', border: 'none', color: 'var(--text-primary)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', padding: '0.25rem'
                   }}
                 >
                   <X size={20} />
                 </button>
-                <span style={{ fontWeight: 700, fontSize: '1.0625rem', color: '#fff' }}>
+                <span style={{ fontWeight: 700, fontSize: '1.0625rem', color: 'var(--text-primary)' }}>
                   {selectedPhotoIds.length} Dipilih
                 </span>
               </div>
@@ -609,9 +613,9 @@ export default function GalleryPage() {
                   <button
                     onClick={() => setMode('selection')}
                     style={{
-                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                      background: 'transparent', border: 'var(--border-strong)',
                       borderRadius: 'var(--radius-sm)', padding: '0.4rem 0.875rem',
-                      color: '#fff', fontSize: '0.75rem', fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-primary)', fontSize: '0.75rem', fontFamily: 'var(--font-mono)',
                       fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase'
                     }}
                   >
@@ -678,7 +682,7 @@ export default function GalleryPage() {
             position: 'absolute',
             bottom: 0, left: 0, right: 0,
             height: '55%',
-            background: 'linear-gradient(to bottom, transparent 0%, rgba(9,9,11,0.7) 55%, #09090b 100%)',
+            background: 'linear-gradient(to bottom, transparent 0%, rgba(250,248,244,0.7) 55%, var(--bg-page) 100%)',
             zIndex: 2,
             pointerEvents: 'none',
           }} />
@@ -737,7 +741,7 @@ export default function GalleryPage() {
                   width: activeBannerIndex === index ? 20 : 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: activeBannerIndex === index ? '#fff' : 'rgba(255,255,255,0.35)',
+                  backgroundColor: activeBannerIndex === index ? 'var(--color-vintage-mustard)' : 'rgba(255,255,255,0.45)',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                 }}
@@ -836,11 +840,7 @@ export default function GalleryPage() {
                         {activeHearts.some((hId) => hId.startsWith(photo.id)) && (
                           <div className="heart-overlay-container">
                             <div className="heart-wrapper">
-                              <Lottie 
-                                animationData={likeHeartAnimation} 
-                                loop={false} 
-                                style={{ width: 100, height: 100 }} 
-                              />
+                              <Heart size={64} fill="#ef4444" color="#ef4444" className="heart-overlay-icon" />
                             </div>
                           </div>
                         )}
@@ -850,7 +850,7 @@ export default function GalleryPage() {
                           src={photo.thumbnail_url}
                           alt={`Photo by ${photo.photographer ?? 'Guest'}`}
                           loading="lazy"
-                          style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+                          style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
                         />
 
                         {/* Floating Like Badge (Always visible, great for mobile) */}
@@ -1047,11 +1047,7 @@ export default function GalleryPage() {
               {activeHearts.some((hId) => hId.startsWith(lightbox.photo.id)) && (
                 <div className="heart-overlay-container">
                   <div className="heart-wrapper">
-                    <Lottie 
-                      animationData={likeHeartAnimation} 
-                      loop={false} 
-                      style={{ width: 220, height: 220 }} 
-                    />
+                    <Heart size={120} fill="#ef4444" color="#ef4444" className="heart-overlay-icon" />
                   </div>
                 </div>
               )}
@@ -1398,10 +1394,9 @@ export default function GalleryPage() {
             }}
           >
             <div style={{
-              width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: '#3b82f6'
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem'
             }}>
-              <RefreshCw size={22} className="spinning" />
+              <ApertureLoader size={72} />
             </div>
 
             <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
@@ -1547,12 +1542,11 @@ export default function GalleryPage() {
          }
         
         .heart-bounce-anim {
-          animation: heartBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          animation: heartGlideIn 0.25s var(--ease-glide) forwards;
         }
-        @keyframes heartBounce {
-          0% { transform: scale(0.6); }
-          50% { transform: scale(1.35); }
-          100% { transform: scale(1); }
+        @keyframes heartGlideIn {
+          0% { opacity: 0; transform: scale(0.85); }
+          100% { opacity: 1; transform: scale(1); }
         }
         
         .heart-overlay-container {
@@ -1563,13 +1557,14 @@ export default function GalleryPage() {
           justify-content: center;
           z-index: 30;
           pointer-events: none;
-          animation: heartOverlayFadeOut 1.4s ease-out forwards;
+          animation: heartOverlayFadeOut 1.4s var(--ease-glide) forwards;
         }
 
         @keyframes heartOverlayFadeOut {
-          0% { opacity: 1; }
-          75% { opacity: 1; }
-          100% { opacity: 0; }
+          0% { opacity: 0; transform: scale(0.8); }
+          15% { opacity: 0.95; transform: scale(1); }
+          80% { opacity: 0.95; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.95); }
         }
 
         .heart-wrapper {
@@ -1580,62 +1575,7 @@ export default function GalleryPage() {
         }
         
         .heart-overlay-icon {
-          animation: heartPopWiggle 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-          filter: drop-shadow(0 4px 20px rgba(244, 63, 94, 0.7));
-        }
-        
-        @keyframes heartPopWiggle {
-          0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
-          12% { opacity: 0.95; transform: scale(1.35) rotate(-18deg); }
-          24% { opacity: 1; transform: scale(1.1) rotate(18deg); }
-          36% { opacity: 1; transform: scale(1.2) rotate(-12deg); }
-          48% { opacity: 1; transform: scale(1.1) rotate(12deg); }
-          60% { opacity: 1; transform: scale(1.1) rotate(0deg); }
-          75% { opacity: 1; transform: scale(1.1) translateY(0); }
-          100% { opacity: 0; transform: scale(0.7) translateY(-35px); }
-        }
-
-        .sparks-container {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          pointer-events: none;
-          z-index: -1;
-        }
-
-        .spark-dot {
-          position: absolute;
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #f43f5e;
-          box-shadow: 0 0 8px #f43f5e;
-          opacity: 0;
-        }
-
-        .spark-0 { --angle: 0deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-1 { --angle: 45deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-2 { --angle: 90deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-3 { --angle: 135deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-4 { --angle: 180deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-5 { --angle: 225deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-6 { --angle: 270deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-        .spark-7 { --angle: 315deg; animation: sparkOutward 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
-
-        @keyframes sparkOutward {
-          0% {
-            opacity: 0;
-            transform: rotate(var(--angle)) translateY(0) scale(0.3);
-          }
-          20% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 0;
-            transform: rotate(var(--angle)) translateY(-65px) scale(0.8);
-          }
+          filter: drop-shadow(0 4px 16px rgba(244, 63, 94, 0.4));
         }
         
         .action-sheet-overlay {
