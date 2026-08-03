@@ -190,18 +190,46 @@ export default function JoinPage() {
   const photosToSlide = bannersList.length > 0 ? bannersList : (event.thumbnail_url ? [event.thumbnail_url] : []);
 
   return (
-    <div style={{
+    <div className="event-landing-outer" style={{
       minHeight: '100dvh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-32) var(--space-24)'
     }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .event-landing-grid {
+            gap: 1.5rem !important;
+            padding-top: 0 !important;
+          }
+          .event-landing-outer {
+            align-items: flex-start !important;
+            padding: 1.25rem 1rem !important;
+          }
+          .event-landing-title {
+            font-size: 2rem !important;
+            margin-bottom: 0.75rem !important;
+          }
+          .event-landing-right {
+            gap: 1.25rem !important;
+          }
+          .event-landing-photo-frame {
+            max-height: 200px !important;
+          }
+          .event-landing-photo-frame img {
+            object-position: center top !important;
+          }
+          .event-landing-caption {
+            display: none !important;
+          }
+        }
+      `}</style>
       <div style={{
         width: '100%', maxWidth: '1080px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: 'var(--space-64)', alignItems: 'center'
-      }}>
+      }} className="event-landing-grid">
         
         {/* Left Column: Asymmetric Editorial Cover Framed Portrait (Automatic Crossfade Slideshow) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
           {photosToSlide.length > 0 ? (
-            <div style={{
+            <div className="event-landing-photo-frame" style={{
               width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden',
               border: 'var(--border-hairline)', background: 'var(--bg-surface)',
               boxShadow: 'var(--shadow-sm)', position: 'relative', aspectRatio: '16/9'
@@ -270,7 +298,7 @@ export default function JoinPage() {
             </div>
           )}
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
+          <div className="event-landing-caption" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-caption)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Exhibition Frame
             </span>
@@ -281,9 +309,9 @@ export default function JoinPage() {
         </div>
 
         {/* Right Column: Dynamic Form Block */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
+        <div className="event-landing-right" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
           <div>
-            <h1 style={{ fontSize: 'var(--font-display-l)', lineHeight: 1.1, marginBottom: 'var(--space-16)', letterSpacing: '-0.02em' }}>
+            <h1 className="event-landing-title" style={{ fontSize: 'var(--font-display-l)', lineHeight: 1.1, marginBottom: 'var(--space-16)', letterSpacing: '-0.02em' }}>
               {event.title}
             </h1>
             
