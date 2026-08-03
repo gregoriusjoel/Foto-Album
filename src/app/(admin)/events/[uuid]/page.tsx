@@ -356,7 +356,7 @@ export default function EventDetailPage() {
   if (!event) return null;
 
   const { label, className } = getEventStatusBadge(event.status, event.has_started);
-  const joinUrl = event.join_url ?? `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${event.slug}`;
+  const joinUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${event.slug}`;
 
   return (
     <div className="admin-page" style={{ maxWidth: 1400 }}>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
@@ -10,6 +11,7 @@ interface EventOgData {
   category?: string;
   banner_photos?: string[] | null;
   thumbnail_url?: string | null;
+  join_url?: string | null;
 }
 
 async function fetchEventOg(slug: string): Promise<EventOgData | null> {
@@ -49,7 +51,10 @@ export async function generateMetadata({
     event.description?.trim() ||
     `Bergabung & kirim foto untuk event "${event.title}"${venue}. Buka Memly sekarang!`;
 
-  const pageUrl = `https://fotoalbums.vercel.app/e/${slug}`;
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3000';
+  const proto = headersList.get('x-forwarded-proto') || 'https';
+  const pageUrl = event.join_url ?? `${proto}://${host}/e/${slug}`;
 
   return {
     title,
