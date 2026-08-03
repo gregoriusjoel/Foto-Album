@@ -191,16 +191,21 @@ export default function JoinPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
           {coverPhoto ? (
             <div style={{
-              aspectRatio: '4/5', width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden',
-              border: 'var(--border-hairline)', background: 'var(--bg-surface)', position: 'relative',
+              width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden',
+              border: 'var(--border-hairline)', background: 'var(--bg-surface)',
               boxShadow: 'var(--shadow-sm)'
             }}>
-              <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: `url("${coverPhoto}")`,
-                backgroundSize: 'cover', backgroundPosition: 'center',
-                filter: 'sepia(0.12) contrast(0.96)'
-              }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverPhoto}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  filter: 'sepia(0.12) contrast(0.96)'
+                }}
+              />
             </div>
           ) : (
             <div style={{

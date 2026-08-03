@@ -1679,21 +1679,19 @@ export default function GalleryPage() {
         
         .bottom-toolbar {
           position: fixed;
-          bottom: 1.5rem;
+          bottom: calc(1.5rem + env(safe-area-inset-bottom));
           left: 50%;
           transform: translateX(-50%);
-          width: calc(100% - 2rem);
-          max-width: 450px;
-          background: rgba(20, 20, 25, 0.85);
+          background: rgba(250, 248, 244, 0.92);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 16px;
-          padding: 0.75rem 1.25rem;
+          border: 1px solid rgba(0, 0, 0, 0.12);
+          border-radius: 99px;
+          padding: 0.5rem 0.625rem 0.5rem 1.5rem;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          gap: 1.5rem;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
           z-index: 90;
           animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
