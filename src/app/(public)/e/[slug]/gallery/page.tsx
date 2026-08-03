@@ -374,6 +374,19 @@ export default function GalleryPage() {
     }
   }, [activeActionSheetPhoto]);
 
+  // Prevent background scrolling when modals, lightbox, or long-press previews are open
+  useEffect(() => {
+    const isModalOpen = !!(activeActionSheetPhoto || showInfoPhoto || showConfirmModal || lightbox);
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [activeActionSheetPhoto, showInfoPhoto, showConfirmModal, lightbox]);
+
   useEffect(() => {
     const photos = event?.banner_photos;
     if (!photos || photos.length === 0) return;
