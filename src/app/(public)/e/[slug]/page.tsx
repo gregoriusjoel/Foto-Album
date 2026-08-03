@@ -204,7 +204,6 @@ export default function JoinPage() {
             padding: 1.25rem 1rem !important;
           }
           .event-landing-title {
-            font-size: 2rem !important;
             margin-bottom: 0.75rem !important;
           }
           .event-landing-right {
@@ -315,17 +314,17 @@ export default function JoinPage() {
               {event.title}
             </h1>
             
-            <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <Calendar size={12} /> {formatDate(event.event_date)}
+            <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Calendar size={14} /> {formatDate(event.event_date)}
               </span>
               {event.venue && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <MapPin size={12} /> {event.venue}
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <MapPin size={14} /> {event.venue}
                 </span>
               )}
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <Users size={12} /> {event.total_participants} Preserved
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Users size={14} /> {event.total_participants} Preserved
               </span>
             </div>
           </div>
