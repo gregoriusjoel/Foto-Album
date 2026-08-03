@@ -95,6 +95,17 @@ export default function JoinPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
+  const banners = event?.banner_photos ?? [];
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
   const {
     register,
@@ -175,8 +186,8 @@ export default function JoinPage() {
     return null;
   }
 
-  const banners = event.banner_photos ?? [];
-  const coverPhoto = banners[0] ?? event.thumbnail_url ?? null;
+  const bannersList = event.banner_photos ?? [];
+  const photosToSlide = bannersList.length > 0 ? bannersList : (event.thumbnail_url ? [event.thumbnail_url] : []);
 
   return (
     <div style={{
@@ -187,29 +198,71 @@ export default function JoinPage() {
         gap: 'var(--space-64)', alignItems: 'center'
       }}>
         
-        {/* Left Column: Asymmetric Editorial Cover Framed Portrait */}
+        {/* Left Column: Asymmetric Editorial Cover Framed Portrait (Automatic Crossfade Slideshow) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
-          {coverPhoto ? (
+          {photosToSlide.length > 0 ? (
             <div style={{
               width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden',
               border: 'var(--border-hairline)', background: 'var(--bg-surface)',
-              boxShadow: 'var(--shadow-sm)'
+              boxShadow: 'var(--shadow-sm)', position: 'relative', aspectRatio: '16/9'
             }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={coverPhoto}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  filter: 'sepia(0.12) contrast(0.96)'
-                }}
-              />
+              {photosToSlide.map((photoUrl, idx) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={photoUrl}
+                  src={photoUrl}
+                  alt=""
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                    filter: 'sepia(0.12) contrast(0.96)',
+                    opacity: idx === activeBannerIndex ? 1 : 0,
+                    transition: 'opacity 1s ease-in-out',
+                    zIndex: idx === activeBannerIndex ? 2 : 1,
+                  }}
+                />
+              ))}
+
+              {/* Dot slide indicators */}
+              {photosToSlide.length > 1 && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '12px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  gap: '6px',
+                  zIndex: 10,
+                }}>
+                  {photosToSlide.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveBannerIndex(idx)}
+                      aria-label={`Slide ${idx + 1}`}
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: idx === activeBannerIndex ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                        transition: 'background-color 0.3s',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div style={{
-              aspectRatio: '4/5', width: '100%', borderRadius: 'var(--radius-md)',
+              aspectRatio: '16/9', width: '100%', borderRadius: 'var(--radius-md)',
               border: 'var(--border-hairline)', background: 'var(--bg-surface)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)'
             }}>
