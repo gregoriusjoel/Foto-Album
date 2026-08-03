@@ -303,14 +303,14 @@ a:hover {
 .btn-primary,
 a.btn-primary {
   background: var(--color-burnt-orange);
-  color: #ffffff !important;
+  color: #ffffff;
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(184, 106, 60, 0.18);
 }
 
 .btn-primary:hover,
 a.btn-primary:hover {
-  color: #ffffff !important;
+  color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(184, 106, 60, 0.3);
 }
@@ -320,37 +320,45 @@ a.btn-primary:active {
   transform: translateY(0);
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
-  border-color: var(--border-color-medium);
+.btn-secondary,
+a.btn-secondary {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color-medium);
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
+.btn-secondary:hover,
+a.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.06);
   border-color: var(--border-color-strong);
+  color: var(--text-primary);
 }
 
-.btn-ghost {
+.btn-ghost,
+a.btn-ghost {
   background: transparent;
   color: var(--text-secondary);
-  border-color: transparent;
+  border: 1px solid transparent;
 }
 
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
+.btn-ghost:hover,
+a.btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
   color: var(--text-primary);
 }
 
-.btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.2);
+.btn-danger,
+a.btn-danger {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.22);
 }
 
-.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.35);
+.btn-danger:hover,
+a.btn-danger:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
 }
 
 .btn-sm {
@@ -496,33 +504,33 @@ a.btn-primary:active {
 }
 
 .badge-brand {
-  background: rgba(168, 85, 247, 0.15);
-  color: #d8b4fe;
+  background: rgba(168, 85, 247, 0.08);
+  color: #7e22ce;
   border: 1px solid rgba(168, 85, 247, 0.2);
 }
 
 .badge-success {
-  background: rgba(34, 197, 94, 0.12);
-  color: #86efac;
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: rgba(34, 197, 94, 0.08);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.18);
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.08);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.18);
 }
 
 .badge-error {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.18);
 }
 
 .badge-gray {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.03);
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color-medium);
 }
 
 /* ── Divider ────────────────────────────────────────────────── */

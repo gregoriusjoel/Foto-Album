@@ -103,7 +103,7 @@ export default function EventDetailPage() {
     logoImg.onload = () => {
       const svgData = new XMLSerializer().serializeToString(svg);
       const qrImg = new window.Image();
-      
+
       qrImg.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -113,16 +113,16 @@ export default function EventDetailPage() {
         canvas.width = 600;
         canvas.height = 850;
 
-        // 1. Draw Background (Deep rich charcoal/dark mode gradient)
+        // 1. Draw Background (Warm paper-white / light ivory gradient)
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, '#09090b');
-        gradient.addColorStop(1, '#18181b');
+        gradient.addColorStop(0, '#FAF8F4');
+        gradient.addColorStop(1, '#F3EFE6');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // ─── BACKGROUND ORNAMENTS ───
         // A. Faint dot grid matrix in the background
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.025)';
         const dotSpacing = 30;
         for (let x = 40; x < canvas.width - 40; x += dotSpacing) {
           for (let y = 40; y < canvas.height - 40; y += dotSpacing) {
@@ -133,7 +133,7 @@ export default function EventDetailPage() {
         }
 
         // B. Faint circular aperture rings
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.025)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(canvas.width / 2, canvas.height / 2, 380, 0, Math.PI * 2);
@@ -143,20 +143,20 @@ export default function EventDetailPage() {
         ctx.stroke();
 
         // C. Camera status info labels (top left / top right)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.fillStyle = 'rgba(31, 31, 31, 0.45)';
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'left';
         ctx.fillText('[ ISO 400 ]', 35, 45);
         ctx.textAlign = 'right';
         ctx.fillText('[ MODE: ANA_COLOR ]', canvas.width - 35, 45);
 
-        // 2. Draw modern border (thin elegant border in light white opacity)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        // 2. Draw modern border (thin elegant border in light black opacity)
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
         ctx.lineWidth = 1;
         ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-        
-        // Add camera viewfinder style corner accents
-        ctx.strokeStyle = '#ffffff';
+
+        // Add camera viewfinder style corner accents (dark charcoal)
+        ctx.strokeStyle = '#1f1f1f';
         ctx.lineWidth = 3;
         const offset = 20;
         const len = 15;
@@ -192,14 +192,14 @@ export default function EventDetailPage() {
         const logoY = 65;
         ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
 
-        // 4. Draw Website Name / Branding
-        ctx.fillStyle = '#ffffff';
+        // 4. Draw Website Name / Branding (dark charcoal)
+        ctx.fillStyle = '#1f1f1f';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.font = 'bold 24px sans-serif';
         ctx.fillText('F O T O A L B U M', canvas.width / 2, logoY + logoHeight + 15);
-        
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+
+        ctx.fillStyle = 'rgba(31, 31, 31, 0.5)';
         ctx.font = '11px monospace';
         ctx.fillText('SHARE YOUR MOMENTS LIVE', canvas.width / 2, logoY + logoHeight + 48);
 
@@ -207,25 +207,28 @@ export default function EventDetailPage() {
         const qrSize = 280;
         const qrX = (canvas.width - qrSize) / 2;
         const qrY = 250;
-        
+
         // Draw solid white container box
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
-        
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+
         // Draw QR Code image
         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
         // 6. Draw Event Info in Footer (Shifted down for better balance without join code)
         const footerY = 620;
-        
-        // Event Title (Bold & Elegant)
-        ctx.fillStyle = '#ffffff';
+
+        // Event Title (Bold & Elegant Burnt Orange)
+        ctx.fillStyle = '#b86a3c';
         ctx.font = '800 32px sans-serif';
         const titleText = (event?.title || 'OUR EVENT').toUpperCase();
         ctx.fillText(titleText, canvas.width / 2, footerY);
 
         // Subtitle instructions
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillStyle = 'rgba(31, 31, 31, 0.6)';
         ctx.font = 'bold 12px monospace';
         ctx.fillText('SCAN QR CODE TO JOIN & SHARE PHOTOS', canvas.width / 2, footerY + 50);
 
@@ -257,16 +260,19 @@ export default function EventDetailPage() {
         canvas.width = 600;
         canvas.height = 800;
 
-        ctx.fillStyle = '#09090b';
+        ctx.fillStyle = '#FAF8F4';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
         ctx.lineWidth = 4;
         ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
 
         // Draw solid white container box
         ctx.fillStyle = '#ffffff';
         ctx.fillRect((canvas.width - 320) / 2 - 20, 200 - 20, 320 + 40, 320 + 40);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect((canvas.width - 320) / 2 - 20, 200 - 20, 320 + 40, 320 + 40);
         ctx.drawImage(qrImg, (canvas.width - 320) / 2, 200, 320, 320);
 
         try {
@@ -448,7 +454,7 @@ export default function EventDetailPage() {
               <p>No photos uploaded yet.</p>
             </div>
           ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.625rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.625rem' }}>
               {photos.map((photo, idx) => {
                 const isLast = idx === photos.length - 1;
                 const remaining = totalPhotos - photos.length;
@@ -550,9 +556,9 @@ export default function EventDetailPage() {
           <div className="card" style={{ padding: '1rem' }}>
             <h3 style={{ fontSize: '0.9375rem', marginBottom: '0.875rem' }}>Stats</h3>
             {[
-              { label: 'Photos',     value: event.total_photos.toLocaleString() },
-              { label: 'Guests',     value: event.total_participants.toLocaleString() },
-              { label: 'Storage',    value: formatMb(event.storage_used_mb ?? 0) },
+              { label: 'Photos', value: event.total_photos.toLocaleString() },
+              { label: 'Guests', value: event.total_participants.toLocaleString() },
+              { label: 'Storage', value: formatMb(event.storage_used_mb ?? 0) },
             ].map(({ label, value }) => (
               <div key={label} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -586,9 +592,9 @@ export default function EventDetailPage() {
         {showDeleteModal && (
           <div style={{
             position: 'fixed', inset: 0,
-            backgroundColor: 'rgba(9, 9, 11, 0.85)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 1000,
             padding: '1.5rem',
@@ -600,11 +606,11 @@ export default function EventDetailPage() {
               transition={{ duration: 0.15, ease: 'easeOut' }}
               style={{
                 width: '100%', maxWidth: 440,
-                backgroundColor: '#18181b',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--border-color)',
                 borderRadius: 16,
                 padding: '2rem',
-                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.5)',
+                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
                 display: 'flex', flexDirection: 'column', gap: '1.5rem',
                 textAlign: 'center',
               }}
@@ -619,13 +625,13 @@ export default function EventDetailPage() {
                 }}>
                   <AlertTriangle size={28} />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Delete Event permanently?
                 </h3>
               </div>
 
               {/* Message */}
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.6)', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
                 WARNING: Are you sure you want to permanently delete this event? This will delete all guest names, wishes, photos, and files on the storage server forever. This action CANNOT be undone!
               </p>
 
