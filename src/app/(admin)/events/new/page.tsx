@@ -198,9 +198,8 @@ export default function NewEventPage() {
       <p style={{ marginBottom: '2rem' }}>Fill in the details below to set up your shared photo album.</p>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div style={{
+        <div className="admin-new-event-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
           gap: '1.5rem',
           alignItems: 'start',
           marginBottom: '2rem'
@@ -242,7 +241,7 @@ export default function NewEventPage() {
                 <Calendar size={15} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
                 Date & Time
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="admin-time-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label" htmlFor="evt-date">Event Date *</label>
                   <input id="evt-date" type="date" className={`form-input ${errors.event_date ? 'error' : ''}`}
@@ -301,7 +300,7 @@ export default function NewEventPage() {
                 Choose and crop exactly 3 images. These will be formatted to the landscape ratio (16:9) for the sliding header.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+              <div className="admin-banner-grid" style={{ display: 'grid', gap: '1rem' }}>
                 {banners.map((slot, index) => (
                   <div
                     key={index}
@@ -397,7 +396,7 @@ export default function NewEventPage() {
 
                 <div className="divider" style={{ margin: '0.5rem 0' }} />
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="admin-time-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label" htmlFor="evt-max">Max Photos</label>
                     <div style={{ position: 'relative' }}>

@@ -67,9 +67,9 @@ export default function EventsPage() {
       </div>
 
       {/* Filters */}
-      <div style={{ marginBottom: '1.25rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="events-filter-row" style={{ marginBottom: '1.25rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {/* Status tabs */}
-        <div style={{
+        <div className="events-status-tabs" style={{
           display: 'flex', gap: '0.25rem',
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',

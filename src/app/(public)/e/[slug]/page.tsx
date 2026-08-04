@@ -204,6 +204,8 @@ export default function JoinPage() {
             padding: 1.25rem 1rem !important;
           }
           .event-landing-title {
+            font-size: clamp(2.25rem, 11vw, 3.5rem) !important;
+            line-height: 1.1 !important;
             margin-bottom: 0.75rem !important;
           }
           .event-landing-right {

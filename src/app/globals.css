@@ -1179,3 +1179,102 @@ a.btn-danger:hover {
     transform: translateY(0);
   }
 }
+
+/* ── Admin Form: 2-col grid (New / Edit Event) ─────────────────── */
+.admin-new-event-grid {
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+}
+
+@media (max-width: 860px) {
+  .admin-new-event-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Admin Banner Photo: 3-col grid ────────────────────────────── */
+.admin-banner-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 480px) {
+  .admin-banner-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Events list: status filter tab row ─────────────────────────── */
+@media (max-width: 640px) {
+  .events-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .events-status-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    flex-shrink: 0;
+  }
+}
+
+/* ── Dashboard greeting responsive ──────────────────────────────── */
+@media (max-width: 768px) {
+  .dash-greeting {
+    font-size: clamp(1.75rem, 7vw, 2.5rem) !important;
+    line-height: 1.15 !important;
+  }
+}
+
+/* ── Stat card responsive ────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .stat-card {
+    padding: 1rem !important;
+    gap: 0.75rem !important;
+  }
+
+  .stat-card-icon {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .stat-card-value {
+    font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
+  }
+}
+
+
+/* ── Admin date/time inner 2-col grid collapse on narrow screens ─── */
+@media (max-width: 420px) {
+  .admin-time-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Mobile sidebar drawer slide-in animation ─────────────────── */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

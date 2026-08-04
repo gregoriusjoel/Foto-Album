@@ -249,9 +249,8 @@ export default function EditEventPage() {
       <p style={{ marginBottom: '2rem' }}>Update the details for your shared photo album.</p>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div style={{
+        <div className="admin-new-event-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
           gap: '1.5rem',
           alignItems: 'start',
           marginBottom: '2rem'
@@ -293,7 +292,7 @@ export default function EditEventPage() {
                 <Calendar size={15} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
                 Date & Time
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="admin-time-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label" htmlFor="evt-date">Event Date *</label>
                   <input id="evt-date" type="date" className={`form-input ${errors.event_date ? 'error' : ''}`}
@@ -458,7 +457,7 @@ export default function EditEventPage() {
 
                 <div className="divider" style={{ margin: '0.5rem 0' }} />
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="admin-time-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label" htmlFor="evt-max">Max Photos</label>
                     <div style={{ position: 'relative' }}>

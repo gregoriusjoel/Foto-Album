@@ -39,15 +39,15 @@ export default function DashboardPage() {
   return (
     <div className="admin-page" style={{ maxWidth: 1400, padding: 'var(--space-32) var(--space-24)' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--space-32)', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', marginBottom: '0.25rem' }}>
+      <div className="dash-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--space-32)', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 className="dash-greeting" style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', marginBottom: '0.25rem', wordBreak: 'break-word' }}>
             Good {getGreeting()},{' '}
-            <span style={{ fontStyle: 'italic', color: 'var(--color-burnt-orange)' }}>{user?.name?.split(' ')[0]}</span>
+            <span style={{ fontStyle: 'italic', color: 'var(--color-burnt-orange)' }}>{user?.name}</span>
           </h1>
           <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', fontWeight: 300 }}>Here&apos;s what&apos;s happening with your memory archives.</p>
         </div>
-        <Link href="/events/new" className="btn btn-primary" style={{ borderRadius: 'var(--radius-pill)', padding: '0.625rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Link href="/events/new" className="btn btn-primary" style={{ borderRadius: 'var(--radius-pill)', padding: '0.625rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           <Plus size={16} /> New Event
         </Link>
       </div>
@@ -55,12 +55,12 @@ export default function DashboardPage() {
       {/* Stat Cards */}
       <div className="admin-stat-grid" style={{ marginBottom: 'var(--space-32)' }}>
         {statCards.map((s, i) => (
-          <div key={i} className="card" style={{
-            display: 'flex', alignItems: 'center', gap: '1.25rem', padding: 'var(--space-24)',
+          <div key={i} className="card stat-card" style={{
+            display: 'flex', alignItems: 'center', gap: '1rem', padding: 'var(--space-24)',
             background: 'var(--bg-surface)', border: 'var(--border-hairline)', borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-xs)'
+            boxShadow: 'var(--shadow-xs)', overflow: 'hidden'
           }}>
-            <div style={{
+            <div className="stat-card-icon" style={{
               width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
               background: 'var(--bg-page)',
               border: 'var(--border-hairline)',
@@ -69,17 +69,18 @@ export default function DashboardPage() {
             }}>
               <s.icon size={18} />
             </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-caption)', color: 'var(--text-muted)', marginBottom: 'var(--space-4)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="stat-card-label" style={{ fontSize: 'var(--font-caption)', color: 'var(--text-muted)', marginBottom: 'var(--space-4)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {s.label}
               </div>
-              <div style={{ fontSize: 'var(--font-display-m)', fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
+              <div className="stat-card-value" style={{ fontSize: 'var(--font-display-m)', fontFamily: 'var(--font-display)', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {loading ? <span className="skeleton" style={{ width: 60, height: 24, display: 'block' }} /> : s.isString ? s.value : s.value.toLocaleString()}
               </div>
             </div>
           </div>
         ))}
       </div>
+
 
       {/* Recent Events */}
       <div className="card" style={{

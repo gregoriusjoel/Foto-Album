@@ -21,6 +21,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarClosing, setSidebarClosing] = useState(false);
+
+  const openSidebar = () => {
+    setSidebarClosing(false);
+    setSidebarOpen(true);
+  };
+
+  const closeSidebar = () => {
+    setSidebarClosing(true);
+    // unmount after animation (250ms + small buffer)
+    setTimeout(() => {
+      setSidebarOpen(false);
+      setSidebarClosing(false);
+    }, 270);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -41,12 +56,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const Sidebar = () => (
     <aside style={{
-      width: 240,
+      width: '100%',
       background: 'var(--bg-surface)',
       borderRight: '1px solid var(--border-color)',
       display: 'flex',
       flexDirection: 'column',
-      height: '100%',
+      height: '100dvh',
       flexShrink: 0,
     }}>
       {/* Logo */}
@@ -62,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Link>
         <button
           className="btn btn-ghost btn-sm hide-desktop"
-          onClick={() => setSidebarOpen(false)}
+          onClick={closeSidebar}
           style={{ padding: '0.25rem' }}
           aria-label="Close sidebar"
         >
@@ -78,7 +93,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               key={href}
               href={href}
-              onClick={() => setSidebarOpen(false)}
+            onClick={closeSidebar}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.625rem',
                 padding: '0.625rem 0.75rem',
@@ -138,21 +153,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
       {/* Desktop sidebar */}
-      <div className="hide-mobile" style={{ display: 'flex', height: '100%' }}>
+      <div className="hide-mobile" style={{ display: 'flex', height: '100%', width: 240, flexShrink: 0 }}>
         <Sidebar />
       </div>
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div
-          className="modal-overlay"
-          style={{ justifyContent: 'flex-start', alignItems: 'stretch' }}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 260, height: '100%' }}>
+        <>
+          {/* Dark backdrop */}
+          <div
+            onClick={closeSidebar}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.55)',
+              zIndex: 1000,
+              backdropFilter: 'blur(2px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              animation: sidebarClosing
+                ? 'fadeOut 0.25s ease forwards'
+                : 'fadeIn 0.25s ease forwards',
+            }}
+          />
+          {/* Drawer panel */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: 272,
+              zIndex: 1001,
+              animation: sidebarClosing
+                ? 'slideOutLeft 0.25s cubic-bezier(0.55, 0, 0.75, 0.06) forwards'
+                : 'slideInLeft 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+              boxShadow: '4px 0 24px rgba(0,0,0,0.18)',
+            }}
+          >
             <Sidebar />
           </div>
-        </div>
+        </>
       )}
 
       {/* Main content */}
@@ -166,7 +207,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }}>
           <button
             className="btn btn-ghost btn-sm"
-            onClick={() => setSidebarOpen(true)}
+            onClick={openSidebar}
             style={{ padding: '0.375rem' }}
             aria-label="Open menu"
           >
