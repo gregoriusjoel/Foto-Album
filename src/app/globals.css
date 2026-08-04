@@ -1286,6 +1286,6 @@ a.btn-danger:hover {
 
 @media (max-width: 640px) {
   .mobile-title-break {
-    display: block;
+    display: inline !important;
   }
 }

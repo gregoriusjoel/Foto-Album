@@ -95,7 +95,7 @@ function renderTitleWithBreak(title: string) {
   return (
     <>
       {line1}
-      <span className="mobile-title-break"><br /></span>
+      <br className="mobile-title-break" />
       {line2}
     </>
   );
@@ -210,7 +210,13 @@ export default function JoinPage() {
       minHeight: '100dvh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-32) var(--space-24)'
     }}>
       <style>{`
+        .mobile-title-break {
+          display: none;
+        }
         @media (max-width: 640px) {
+          .mobile-title-break {
+            display: inline !important;
+          }
           .event-landing-grid {
             gap: 1.5rem !important;
             padding-top: 0 !important;
