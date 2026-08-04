@@ -1278,3 +1278,14 @@ a.btn-danger:hover {
   from { opacity: 1; }
   to   { opacity: 0; }
 }
+
+/* ── Mobile-only title line break ────────────────────────────────── */
+.mobile-title-break {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .mobile-title-break {
+    display: block;
+  }
+}

@@ -85,6 +85,22 @@ function Countdown({ eventDate, startTime, timezone }: { eventDate: string; star
   );
 }
 
+/** Split title into 2 balanced lines separated by a mobile-only <br> */
+function renderTitleWithBreak(title: string) {
+  const words = title.split(' ');
+  if (words.length <= 2) return <>{title}</>;
+  const breakAt = Math.floor(words.length / 2);
+  const line1 = words.slice(0, breakAt).join(' ');
+  const line2 = words.slice(breakAt).join(' ');
+  return (
+    <>
+      {line1}
+      <span className="mobile-title-break"><br /></span>
+      {line2}
+    </>
+  );
+}
+
 export default function JoinPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -204,8 +220,6 @@ export default function JoinPage() {
             padding: 1.25rem 1rem !important;
           }
           .event-landing-title {
-            font-size: clamp(2.25rem, 11vw, 3.5rem) !important;
-            line-height: 1.1 !important;
             margin-bottom: 0.75rem !important;
           }
           .event-landing-right {
@@ -313,7 +327,7 @@ export default function JoinPage() {
         <div className="event-landing-right" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
           <div>
             <h1 className="event-landing-title" style={{ fontSize: 'var(--font-display-l)', lineHeight: 1.1, marginBottom: 'var(--space-16)', letterSpacing: '-0.02em' }}>
-              {event.title}
+              {renderTitleWithBreak(event.title)}
             </h1>
             
             <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
