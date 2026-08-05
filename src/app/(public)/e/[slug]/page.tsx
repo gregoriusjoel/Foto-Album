@@ -165,8 +165,8 @@ export default function JoinPage() {
       toast.success(`Welcome, ${name}!`);
       try {
         const docEl = document.documentElement;
-        if (docEl.requestFullscreen) await docEl.requestFullscreen();
-        else if ((docEl as any).webkitRequestFullscreen) await (docEl as any).webkitRequestFullscreen();
+        if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+        else if ((docEl as any).webkitRequestFullscreen) (docEl as any).webkitRequestFullscreen();
       } catch (e) { console.warn('Auto-fullscreen failed:', e); }
       router.push(`/e/${slug}/camera`);
     } catch (err: unknown) {

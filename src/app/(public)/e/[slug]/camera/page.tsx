@@ -117,20 +117,23 @@ export default function GuestCameraPage() {
     }
   }, []);
 
-  const enterFullscreen = async () => {
+  const enterFullscreen = () => {
     setShowFullscreenOverlay(false);
+
+    // Synchronously initiate camera stream within the user tap gesture loop (crucial for iOS Safari & Mobile browsers)
+    startCamera(cam.facing);
+
+    // Fire-and-forget fullscreen request non-blockingly
     try {
       const docEl = document.documentElement;
       if (docEl.requestFullscreen) {
-        await docEl.requestFullscreen();
+        docEl.requestFullscreen().catch(() => {});
       } else if ((docEl as any).webkitRequestFullscreen) {
-        await (docEl as any).webkitRequestFullscreen();
+        (docEl as any).webkitRequestFullscreen();
       }
     } catch (e) {
-      console.warn('Fullscreen request failed:', e);
+      // Ignore unsupported fullscreen on iOS Safari
     }
-    // Trigger camera start now that the video element is mounting
-    startCamera(cam.facing);
   };
 
   const [mounted, setMounted] = useState(false);
