@@ -260,7 +260,6 @@ export default function JoinPage() {
                     height: '100%',
                     objectFit: 'cover',
                     display: 'block',
-                    filter: 'sepia(0.12) contrast(0.96)',
                     opacity: idx === activeBannerIndex ? 1 : 0,
                     transition: 'opacity 1s ease-in-out',
                     zIndex: idx === activeBannerIndex ? 2 : 1,
