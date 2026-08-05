@@ -7,9 +7,11 @@ import { adminApi } from '@/lib/api';
 import { useAuthStore } from '@/store';
 import { formatDate, getEventStatusBadge, formatMb, getCategoryLabel } from '@/lib/utils';
 import type { DashboardStats, Event } from '@/types';
+import { useI18n } from '@/lib/i18n';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const { t } = useI18n();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,9 +32,9 @@ export default function DashboardPage() {
   }, []);
 
   const statCards = [
-    { label: 'Total Events',    value: stats?.total_events ?? 0,        icon: Calendar, color: 'var(--color-burnt-orange)' },
-    { label: 'Photos Taken',    value: stats?.total_photos ?? 0,         icon: Image,    color: 'var(--color-vintage-mustard)' },
-    { label: 'Participants',    value: stats?.total_participants ?? 0,    icon: Users,    color: 'var(--color-olive-sage)' },
+    { label: t('admin_total_events'),    value: stats?.total_events ?? 0,        icon: Calendar, color: 'var(--color-burnt-orange)' },
+    { label: t('admin_total_photos'),    value: stats?.total_photos ?? 0,         icon: Image,    color: 'var(--color-vintage-mustard)' },
+    { label: t('admin_total_contributors'), value: stats?.total_participants ?? 0,    icon: Users,    color: 'var(--color-olive-sage)' },
     { label: 'Storage Used',    value: formatMb(stats?.storage_used_mb ?? 0), icon: HardDrive, color: 'var(--color-vintage-brown)', isString: true },
   ];
 
@@ -42,13 +44,13 @@ export default function DashboardPage() {
       <div className="dash-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--space-32)', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 className="dash-greeting" style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', marginBottom: '0.25rem', wordBreak: 'break-word' }}>
-            Good {getGreeting()},{' '}
+            {t('admin_welcome')},{' '}
             <span style={{ fontStyle: 'italic', color: 'var(--color-burnt-orange)' }}>{user?.name}</span>
           </h1>
-          <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', fontWeight: 300 }}>Here&apos;s what&apos;s happening with your memory archives.</p>
+          <p style={{ fontSize: 'var(--font-small)', color: 'var(--text-secondary)', fontWeight: 300 }}>{t('admin_sub_overview')}</p>
         </div>
         <Link href="/events/new" className="btn btn-primary" style={{ borderRadius: 'var(--radius-pill)', padding: '0.625rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-          <Plus size={16} /> New Event
+          <Plus size={16} /> {t('admin_new_event')}
         </Link>
       </div>
 
@@ -57,8 +59,8 @@ export default function DashboardPage() {
         {statCards.map((s, i) => (
           <div key={i} className="card stat-card" style={{
             display: 'flex', alignItems: 'center', gap: '1rem', padding: 'var(--space-24)',
-            background: 'var(--bg-surface)', border: 'var(--border-hairline)', borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-xs)', overflow: 'hidden'
+            background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)', borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-sm)', overflow: 'hidden'
           }}>
             <div className="stat-card-icon" style={{
               width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
@@ -84,15 +86,15 @@ export default function DashboardPage() {
 
       {/* Recent Events */}
       <div className="card" style={{
-        padding: 0, background: 'var(--bg-card)', border: 'var(--border-hairline)',
-        borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xs)', overflow: 'hidden'
+        padding: 0, background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)',
+        borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden'
       }}>
         <div style={{
           padding: 'var(--space-16) var(--space-24)',
           borderBottom: 'var(--border-hairline)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <h2 style={{ fontSize: 'var(--font-heading-s)', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)' }}>Recent Events</h2>
+          <h2 style={{ fontSize: 'var(--font-heading-s)', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)' }}>{t('admin_recent_events')}</h2>
           <Link href="/events" className="btn btn-ghost btn-sm" style={{ fontSize: 'var(--font-caption)' }}>
             View all <ArrowRight size={14} />
           </Link>

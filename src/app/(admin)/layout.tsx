@@ -9,19 +9,21 @@ import { useAuthStore } from '@/store';
 import { adminApi } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { getInitials } from '@/lib/utils';
-
-const navLinks = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/events', icon: Calendar, label: 'Events' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
-];
+import { useI18n, LanguageToggle } from '@/lib/i18n';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useI18n();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarClosing, setSidebarClosing] = useState(false);
+
+  const navLinks = [
+    { href: '/dashboard', icon: LayoutDashboard, label: t('admin_overview') },
+    { href: '/events', icon: Calendar, label: t('admin_events') },
+    { href: '/settings', icon: Settings, label: t('admin_settings') },
+  ];
 
   const openSidebar = () => {
     setSidebarClosing(false);
@@ -75,14 +77,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <img src="/logo-memly.png" alt="Logo" className="brand-logo-img" style={{ width: 28, height: 28 }} />
           <span className="brand-logo-text" style={{ fontSize: '1.2rem' }}>Memly</span>
         </Link>
-        <button
-          className="btn btn-ghost btn-sm hide-desktop"
-          onClick={closeSidebar}
-          style={{ padding: '0.25rem' }}
-          aria-label="Close sidebar"
-        >
-          <X size={18} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <LanguageToggle />
+          <button
+            className="btn btn-ghost btn-sm hide-desktop"
+            onClick={closeSidebar}
+            style={{ padding: '0.25rem' }}
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Nav */}

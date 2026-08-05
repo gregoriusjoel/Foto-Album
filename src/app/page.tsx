@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import { useI18n, LanguageToggle } from '@/lib/i18n';
 import {
   Camera, ArrowRight, QrCode, Users, Download, Shield, Sparkles,
   Check, X, ChevronDown, RefreshCw, Smartphone, Image as ImageIcon,
@@ -32,6 +35,8 @@ const NEW_UPLOAD_SAMPLES = [
 ];
 
 export default function HomePage() {
+  const { t } = useI18n();
+
   // Live Memory Roll uploads state
   const [liveUploads, setLiveUploads] = useState<any[]>([]);
   const [newUploadNotify, setNewUploadNotify] = useState<string | null>(null);
@@ -47,6 +52,18 @@ export default function HomePage() {
 
   // FAQ accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Floating navbar scroll state
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 25);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Periodic new photo uploads simulations
   useEffect(() => {
@@ -101,48 +118,82 @@ export default function HomePage() {
       {/* Grid overlay background */}
       <div className="paper-grid-bg" style={{ position: 'absolute', inset: 0, opacity: 0.6, pointerEvents: 'none', zIndex: 0 }} />
 
-      {/* ── Navigation Header ── */}
-      <nav style={{
-        borderBottom: 'var(--border-hairline)',
-        padding: '1.25rem 0',
-        position: 'sticky',
+      {/* ── Navigation Header (Floating Glass Pill with Smooth CSS Transitions) ── */}
+      <div style={{
+        position: 'fixed',
         top: 0,
-        background: 'rgba(250, 248, 244, 0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        zIndex: 100,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <Link href="/" className="brand-logo-container">
-            <img src="/logo-memly.png" alt="Logo" className="brand-logo-img" />
-            <span className="brand-logo-text">Memly</span>
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <Link href="/login" style={{
-              fontSize: '0.875rem',
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-              fontWeight: 500,
-              transition: 'color 0.2s'
-            }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}>
-              Sign In
+        <nav
+          style={{
+            pointerEvents: 'auto',
+            width: '100%',
+            maxWidth: scrolled ? '1080px' : '1200px',
+            transform: scrolled ? 'translateY(12px)' : 'translateY(0px)',
+            borderRadius: scrolled ? '999px' : '0px',
+            backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.88)' : 'rgba(250, 248, 244, 0.85)',
+            boxShadow: scrolled
+              ? '0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04)'
+              : 'none',
+            borderStyle: 'solid',
+            borderWidth: scrolled ? '1px' : '0 0 1px 0',
+            borderColor: scrolled ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.06)',
+            padding: scrolled ? '10px 24px' : '20px 32px',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <Link href="/" className="brand-logo-container">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-memly.png"
+                alt="Logo"
+                className="brand-logo-img"
+                style={{ height: scrolled ? 28 : 32, transition: 'height 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
+              />
+              <span
+                className="brand-logo-text"
+                style={{ fontSize: scrolled ? '1.35rem' : '1.5rem', transition: 'font-size 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
+              >
+                Memly
+              </span>
             </Link>
-            <Link href="/register" style={{
-              background: 'var(--color-burnt-orange)',
-              color: 'var(--color-paper-white)',
-              padding: '0.5rem 1.25rem',
-              borderRadius: 'var(--radius-pill)',
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              fontWeight: 600,
-              transition: 'transform 0.3s var(--ease-glide), opacity 0.3s var(--ease-glide)',
-              boxShadow: '0 2px 8px rgba(184, 106, 60, 0.12)'
-            }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03) translateY(-1px)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}>
-              Get Started
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <LanguageToggle />
+              <Link href="/login" style={{
+                fontSize: '0.875rem',
+                color: 'var(--text-secondary)',
+                textDecoration: 'none',
+                fontWeight: 500,
+                transition: 'color 0.2s'
+              }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}>
+                {t('nav_signin')}
+              </Link>
+              <Link href="/register" style={{
+                background: 'var(--color-burnt-orange)',
+                color: 'var(--color-paper-white)',
+                padding: scrolled ? '0.45rem 1.15rem' : '0.5rem 1.25rem',
+                borderRadius: 'var(--radius-pill)',
+                fontSize: '0.875rem',
+                textDecoration: 'none',
+                fontWeight: 600,
+                display: 'inline-block',
+                boxShadow: '0 2px 8px rgba(184, 106, 60, 0.18)',
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03) translateY(-1px)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}>
+                {t('nav_getstarted')}
+              </Link>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
 
 
@@ -152,7 +203,7 @@ export default function HomePage() {
 
           <div className="animate-fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-surface)', border: 'var(--border-hairline)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: 'var(--space-24)' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--color-burnt-orange)' }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-burnt-orange)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>Realtime Memory Archive</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-burnt-orange)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>{t('hero_badge')}</span>
           </div>
 
           <h1 className="animate-fade-up" style={{
@@ -175,7 +226,7 @@ export default function HomePage() {
             lineHeight: 1.7,
             fontWeight: 300
           }}>
-            Memly lets every guest contribute original photos to a live, shared event gallery instantly. No app downloads, no logins, no manual WhatsApp transfers.
+            {t('hero_subtitle')}
           </p>
 
           <div className="animate-fade-up" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -190,8 +241,8 @@ export default function HomePage() {
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               boxShadow: '0 4px 14px rgba(184, 106, 60, 0.15)',
               transition: 'transform 0.3s var(--ease-glide), opacity 0.3s var(--ease-glide)'
-            }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03) translateY(-1px)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}>
-              Create Your First Event <ArrowRight size={18} />
+            }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}>
+              {t('hero_cta')} <ArrowRight size={18} />
             </Link>
             <a href="#demo" style={{
               background: 'var(--bg-surface)',
@@ -391,13 +442,13 @@ export default function HomePage() {
 
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-64)' }}>
             <span style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', color: 'var(--color-vintage-mustard)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.5rem' }}>
-              The Journey
+              {t('demo_badge')}
             </span>
             <h2 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', fontWeight: 400, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              How Memly Works
+              {t('demo_title')}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 300 }}>
-              Click through the interactive timeline to trace the memory sharing experience.
+              {t('demo_subtitle')}
             </p>
           </div>
 
@@ -409,11 +460,11 @@ export default function HomePage() {
             {/* Left: Step Controls list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
               {[
-                { step: 1, title: '1. Create Event Archive', desc: 'Instantly generates your custom memory entrance and QR code.' },
-                { step: 2, title: '2. Scan Table QR Code', desc: 'Guests scan using their default smartphone camera. No app download needed.' },
-                { step: 3, title: '3. Capture Shared Moments', desc: 'Guests snap photos and write warm wishes inside the live viewfinder.' },
-                { step: 4, title: '4. Stream Upload Stream', desc: 'Photos upload automatically in their original, uncompressed resolution.' },
-                { step: 5, title: '5. Download memories ZIP', desc: 'Download every high-resolution capture with a single click.' },
+                { step: 1, title: t('demo_step1_title'), desc: t('demo_step1_desc') },
+                { step: 2, title: t('demo_step2_title'), desc: t('demo_step2_desc') },
+                { step: 3, title: t('demo_step3_title'), desc: t('demo_step3_desc') },
+                { step: 4, title: t('demo_step4_title'), desc: t('demo_step4_desc') },
+                { step: 5, title: t('demo_step5_title'), desc: t('demo_step5_desc') },
               ].map((s) => (
                 <button
                   key={s.step}
@@ -441,10 +492,10 @@ export default function HomePage() {
 
             {/* Right: Simulator Mock Viewfinder Screen (Warm Paper Style) */}
             <div style={{
-              background: 'var(--bg-surface)', border: 'var(--border-hairline)',
+              background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)',
               borderRadius: 'var(--radius-lg)', aspectRatio: '4/5', width: '100%', maxWidth: '440px', margin: '0 auto',
               padding: '2rem', display: 'flex', flexDirection: 'column', position: 'relative',
-              boxShadow: 'var(--shadow-sm)', overflow: 'hidden'
+              boxShadow: 'var(--shadow-md)', overflow: 'hidden'
             }}>
 
               {/* Step 1: Organizer QR code layout */}
@@ -529,7 +580,7 @@ export default function HomePage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h5 style={{ fontSize: '0.875rem', fontWeight: 600 }}>Shared Gallery ({simulatedGallery.length})</h5>
                     <button onClick={() => {
-                      alert('ZIP Archive download initialized.');
+                      toast.success('ZIP Archive download initialized!');
                       setDemoStep(1);
                     }} style={{
                       background: 'var(--color-charcoal)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '0.35rem 0.75rem',
@@ -672,32 +723,48 @@ export default function HomePage() {
 
       {/* ── Section: Key Benefits ── */}
       <section style={{ padding: 'var(--space-96) 2rem', background: 'var(--bg-surface)', borderTop: 'var(--border-hairline)', position: 'relative', zIndex: 1 }}>
-        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-64)' }}>
             <h2 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', fontWeight: 400, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Engineered for Seamless Preserves
+              {t('benefits_title')}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 300 }}>
-              Minimal dashboard operations, maximal emotional presences.
+              {t('benefits_subtitle')}
             </p>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '1.5rem',
-          }}>
+          <style>{`
+            .benefits-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 1.25rem;
+            }
+            @media (max-width: 1024px) {
+              .benefits-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+              }
+            }
+            @media (max-width: 640px) {
+              .benefits-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+              }
+            }
+          `}</style>
+
+          <div className="benefits-grid">
             {[
-              { title: 'Zero Guest Login', desc: 'Guests hate sign-ups. Memly bypasses login barriers entirely. Tap a nickname and contribute.' },
-              { title: 'Full Resolution', desc: 'No pixel compression. Original file sizes are preserved for print-ready wedding memory archives.' },
-              { title: 'Unlimited Memories', desc: 'Unlimited guest uploads. Gather hundreds of candid angles from tables and crowds simultaneously.' },
-              { title: 'Private & Secure', desc: 'Albums are only accessible via QR scan. Your memory repository remains private to your attendees.' },
+              { title: t('b1_title'), desc: t('b1_desc') },
+              { title: t('b2_title'), desc: t('b2_desc') },
+              { title: t('b3_title'), desc: t('b3_desc') },
+              { title: t('b4_title'), desc: t('b4_desc') },
             ].map((b, idx) => (
               <div key={idx} style={{
-                background: 'var(--bg-page)', border: 'var(--border-hairline)',
-                borderRadius: 'var(--radius-md)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem',
-                boxShadow: 'var(--shadow-xs)'
+                background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)',
+                borderRadius: 'var(--radius-md)', padding: '1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.875rem',
+                boxShadow: 'var(--shadow-sm)', transition: 'all 0.2s var(--ease-glide)'
               }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: '50%', backgroundColor: 'var(--bg-surface)', border: 'var(--border-hairline)',
@@ -720,21 +787,21 @@ export default function HomePage() {
 
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-64)' }}>
             <span style={{ fontSize: 'var(--font-caption)', fontFamily: 'var(--font-mono)', color: 'var(--color-vintage-mustard)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '0.5rem' }}>
-              Management Panel
+              {t('dash_badge')}
             </span>
             <h2 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', fontWeight: 400, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Organizer Dashboard Control
+              {t('dash_title')}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 300 }}>
-              Monitor incoming streams, view guest logs, and oversee event access parameters.
+              {t('dash_desc')}
             </p>
           </div>
 
           {/* Interactive Mock Dashboard */}
           <div style={{
-            background: 'var(--bg-surface)', border: 'var(--border-hairline)',
+            background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)',
             borderRadius: 'var(--radius-lg)', width: '100%', padding: '2rem', display: 'flex', flexDirection: 'column',
-            boxShadow: 'var(--shadow-sm)', overflow: 'hidden'
+            boxShadow: 'var(--shadow-md)', overflow: 'hidden'
           }}>
             {/* Tab top */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: 'var(--border-hairline)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
@@ -754,9 +821,9 @@ export default function HomePage() {
             {/* Metrics cards grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
               {[
-                { label: 'Guests Joined', value: '184', change: '+12% just now', color: 'var(--color-burnt-orange)' },
-                { label: 'Photos Captured', value: '542', change: '+32 this hour', color: 'var(--color-vintage-mustard)' },
-                { label: 'Total Disk Volume', value: '1.24 GB', change: 'Original resolution', color: 'var(--color-olive-sage)' },
+                { label: t('dash_active_guests'), value: '184', change: '+12% just now', color: 'var(--color-burnt-orange)' },
+                { label: t('dash_live_photos'), value: '542', change: '+32 this hour', color: 'var(--color-vintage-mustard)' },
+                { label: t('dash_event_status'), value: t('dash_active'), change: 'Original resolution', color: 'var(--color-olive-sage)' },
               ].map((m, idx) => (
                 <div key={idx} style={{ background: 'var(--bg-page)', border: 'var(--border-hairline)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>{m.label}</div>
@@ -775,10 +842,10 @@ export default function HomePage() {
                   { name: 'David M.', action: 'joined the event and snapped a photo', time: '3m ago' },
                   { name: 'Guest #419', action: 'uploaded 1 panorama shot', time: '5m ago' },
                 ].map((a, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-page)', border: 'var(--border-hairline)', borderRadius: 'var(--radius-sm)', padding: '0.75rem 1rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8125rem' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{a.name}</span>
-                      <span style={{ color: 'var(--text-secondary)' }}>{a.action}</span>
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: 'var(--bg-page)', borderRadius: 'var(--radius-sm)', border: 'var(--border-hairline)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}>
+                      <span style={{ fontWeight: 600 }}>{a.name}</span>
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 300 }}>{a.action}</span>
                     </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.time}</span>
                   </div>
@@ -797,39 +864,30 @@ export default function HomePage() {
 
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-64)' }}>
             <h2 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', fontWeight: 400, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Real Stories from Event Hosts
+              {t('test_title')}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 300 }}>
-              Memly captures the candid perspectives you shouldn&apos;t lose.
+              {t('test_subtitle')}
             </p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
             {[
-              {
-                quote: 'Everyone became part of our wedding album. We got over 600 authentic candid moments that our official photographer could never cover.',
-                author: 'Jessica L.', role: 'Bride'
-              },
-              {
-                quote: 'We didn&apos;t lose a single photo. Guests loved seeing their snaps populate the screens in real-time. It was incredibly simple.',
-                author: 'Marcus K.', role: 'Tech Event Manager'
-              },
-              {
-                quote: 'We enjoyed the event instead of asking people for photos. Downloading the complete high-res ZIP file afterward was an absolute lifesaver.',
-                author: 'Daniel V.', role: 'Birthday Host'
-              }
-            ].map((t, idx) => (
+              { quote: t('t1_quote'), author: t('t1_author'), role: t('t1_role') },
+              { quote: t('t2_quote'), author: t('t2_author'), role: t('t2_role') },
+              { quote: t('t3_quote'), author: t('t3_author'), role: t('t3_role') },
+            ].map((tItem, idx) => (
               <div key={idx} style={{
-                background: 'var(--bg-page)', border: 'var(--border-hairline)',
-                borderRadius: 'var(--radius-md)', padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                boxShadow: 'var(--shadow-xs)'
+                background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)',
+                borderRadius: 'var(--radius-md)', padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1.5rem',
+                boxShadow: 'var(--shadow-sm)'
               }}>
                 <p style={{ fontSize: 'var(--font-body)', lineHeight: 1.6, color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '1.25rem', fontWeight: 300 }}>
-                  &ldquo;{t.quote}&rdquo;
+                  &ldquo;{tItem.quote}&rdquo;
                 </p>
                 <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>{t.author}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>{t.role}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{tItem.author}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{tItem.role}</div>
                 </div>
               </div>
             ))}
@@ -844,24 +902,24 @@ export default function HomePage() {
 
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-64)' }}>
             <h2 style={{ fontSize: 'var(--font-display-l)', fontFamily: 'var(--font-display)', fontWeight: 400, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Frequently Asked Questions
+              {t('faq_title')}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 300 }}>
-              Practical questions on photo collection.
+              {t('faq_subtitle')}
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
             {[
-              { q: 'Do guests need an account?', a: 'No. Guests do not need to download an application or sign up for an account. They scan the QR code, type a nickname, and begin taking photos immediately.' },
-              { q: 'Is photo quality preserved?', a: 'Yes. All photos contributed by guests are uploaded in their full, original resolution without quality degradation or compression.' },
-              { q: 'Can I download everything?', a: 'Absolutely. As the organizer, you can download all high-resolution photos in a single ZIP archive from your dashboard.' },
-              { q: 'Is there a guest limit?', a: 'No. Memly supports unlimited guests and unlimited uploads for every event.' },
-              { q: 'Can it be used for weddings?', a: 'Yes, weddings are our most popular events. Placing QR code stand cards on tables acts as a modern, digital alternative to disposable analog cameras.' }
+              { q: t('faq1_q'), a: t('faq1_a') },
+              { q: t('faq2_q'), a: t('faq2_a') },
+              { q: t('faq3_q'), a: t('faq3_a') },
+              { q: t('faq4_q'), a: t('faq4_a') },
+              { q: t('faq5_q'), a: t('faq5_a') },
             ].map((f, idx) => (
               <div key={idx} style={{
-                background: 'var(--bg-surface)', border: 'var(--border-hairline)',
-                borderRadius: 'var(--radius-md)', overflow: 'hidden'
+                background: 'var(--bg-card)', border: '1px solid var(--border-color-medium)',
+                borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--shadow-xs)'
               }}>
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}

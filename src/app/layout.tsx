@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
+import { I18nProvider } from '@/lib/i18n';
+import { Preloader } from '@/components/ui/Preloader';
 import './globals.css';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://memly.online';
@@ -106,7 +108,11 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {children}
+        <I18nProvider>
+          <Preloader>
+            {children}
+          </Preloader>
+        </I18nProvider>
         <Toaster
           position="top-right"
           toastOptions={{

@@ -10,6 +10,7 @@ import { adminApi } from '@/lib/api';
 import { formatDate, getEventStatusBadge, getCategoryLabel } from '@/lib/utils';
 import type { Event, EventStatus } from '@/types';
 import toast from 'react-hot-toast';
+import { useI18n } from '@/lib/i18n';
 
 const STATUS_TABS: { value: EventStatus | 'all'; label: string }[] = [
   { value: 'all',       label: 'All' },
@@ -20,10 +21,17 @@ const STATUS_TABS: { value: EventStatus | 'all'; label: string }[] = [
 ];
 
 export default function EventsPage() {
+  const { t } = useI18n();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<EventStatus | 'all'>('all');
+
+  const STATUS_TABS: { value: EventStatus | 'all'; label: string }[] = [
+    { value: 'all',       label: t('admin_filter_all') },
+    { value: 'published', label: t('admin_filter_active') },
+    { value: 'closed',    label: t('admin_filter_closed') },
+  ];
 
   const loadEvents = async () => {
     setLoading(true);
@@ -60,9 +68,9 @@ export default function EventsPage() {
     <div className="admin-page" style={{ maxWidth: 1400 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h1 style={{ fontSize: '1.75rem' }}>Events</h1>
-        <Link href="/events/new" className="btn btn-primary">
-          <Plus size={16} /> New Event
+        <h1 style={{ fontSize: '1.75rem', fontFamily: 'var(--font-display)' }}>{t('admin_events')}</h1>
+        <Link href="/events/new" className="btn btn-primary" style={{ borderRadius: 'var(--radius-pill)', padding: '0.625rem 1.5rem' }}>
+          <Plus size={16} /> {t('admin_new_event')}
         </Link>
       </div>
 
@@ -72,7 +80,7 @@ export default function EventsPage() {
         <div className="events-status-tabs" style={{
           display: 'flex', gap: '0.25rem',
           background: 'var(--bg-card)',
-          border: '1px solid var(--border-color)',
+          border: '1px solid var(--border-color-medium)',
           borderRadius: 'var(--radius-md)',
           padding: '0.25rem',
         }}>
@@ -82,11 +90,11 @@ export default function EventsPage() {
               onClick={() => setStatusFilter(tab.value as EventStatus | 'all')}
               className="btn btn-sm"
               style={{
-                background: statusFilter === tab.value ? 'var(--gradient-brand)' : 'transparent',
-                color: statusFilter === tab.value ? '#000' : 'var(--text-secondary)',
+                background: statusFilter === tab.value ? 'var(--color-charcoal)' : 'transparent',
+                color: statusFilter === tab.value ? 'var(--color-paper-white)' : 'var(--text-secondary)',
                 border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                fontWeight: statusFilter === tab.value ? 700 : 400,
+                borderRadius: 'var(--radius-pill)',
+                fontWeight: statusFilter === tab.value ? 600 : 400,
               }}
             >
               {tab.label}
@@ -105,7 +113,7 @@ export default function EventsPage() {
               type="text"
               className="form-input"
               style={{ paddingLeft: '2.25rem' }}
-              placeholder="Search events…"
+              placeholder={t('admin_search_placeholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
