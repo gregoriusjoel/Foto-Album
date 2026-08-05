@@ -16,6 +16,7 @@ import { useParticipantStore } from '@/store';
 import { formatDate } from '@/lib/utils';
 import type { Event, Photo, DownloadJob } from '@/types';
 import { CustomAudioPlayer } from '@/components/ui/CustomAudioPlayer';
+import { getEcho } from '@/lib/echo';
 
 interface Wish {
   id: number;
@@ -395,6 +396,45 @@ export default function GalleryPage() {
     }, 4500);
     return () => clearInterval(interval);
   }, [event?.banner_photos]);
+
+  // Real-time WebSocket listener for newly uploaded photos (Option 1)
+  useEffect(() => {
+    const eventUuid = event?.uuid || event?.id;
+    if (!eventUuid) return;
+
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channelName = `event.${eventUuid}`;
+    const channel = echo.channel(channelName);
+
+    channel.listen('.photo.uploaded', (payload: { photo: Photo }) => {
+      if (!payload?.photo) return;
+      const newPhoto = payload.photo;
+
+      setPhotos((prev) => {
+        if (prev.some((p) => p.id === newPhoto.id)) {
+          return prev;
+        }
+        setPhotoCount((c) => c + 1);
+        toast('📸 Foto baru saja masuk!', {
+          icon: '✨',
+          duration: 3500,
+          style: {
+            borderRadius: '12px',
+            background: '#18181b',
+            color: '#fff',
+            border: '1px solid #27272a',
+          },
+        });
+        return [newPhoto, ...prev];
+      });
+    });
+
+    return () => {
+      echo.leaveChannel(channelName);
+    };
+  }, [event?.id, event?.uuid]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -882,7 +922,11 @@ export default function GalleryPage() {
                         {activeHearts.some((hId) => hId.startsWith(photo.id)) && (
                           <div className="heart-overlay-container">
                             <div className="heart-wrapper">
-                              <Heart size={64} fill="#ef4444" color="#ef4444" className="heart-overlay-icon" />
+                              <Lottie
+                                animationData={likeHeartAnimation}
+                                loop={false}
+                                style={{ width: 140, height: 140, filter: 'drop-shadow(0 4px 20px rgba(239, 68, 68, 0.6))' }}
+                              />
                             </div>
                           </div>
                         )}
@@ -1089,7 +1133,11 @@ export default function GalleryPage() {
               {activeHearts.some((hId) => hId.startsWith(lightbox.photo.id)) && (
                 <div className="heart-overlay-container">
                   <div className="heart-wrapper">
-                    <Heart size={120} fill="#ef4444" color="#ef4444" className="heart-overlay-icon" />
+                    <Lottie
+                      animationData={likeHeartAnimation}
+                      loop={false}
+                      style={{ width: 220, height: 220, filter: 'drop-shadow(0 4px 24px rgba(239, 68, 68, 0.7))' }}
+                    />
                   </div>
                 </div>
               )}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Lottie from 'lottie-react';
 import { Home } from 'lucide-react';
-import cameraAperture from '@/app/camera-aperture.json';
+import pictogram404 from '../../public/Pitctogram 404.json';
 
 export default function NotFound() {
   const [mounted, setMounted] = useState(false);
@@ -47,7 +47,7 @@ export default function NotFound() {
         whiteSpace: 'nowrap',
         pointerEvents: 'none',
       }}>
-        [ 404 · OUT OF FRAME ]
+        [ PAGE NOT FOUND · OUT OF FRAME ]
       </div>
 
       {/* Main Content Container */}
@@ -58,49 +58,37 @@ export default function NotFound() {
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        gap: '1.75rem',
+        gap: '1.25rem',
         zIndex: 1,
       }}>
-        {/* Lottie Aperture Motion Icon Frame */}
+        {/* Lottie Pictogram 404 Animation */}
         <div style={{
-          width: 96,
-          height: 96,
-          borderRadius: '50%',
-          border: '1px solid var(--border-color-medium)',
-          background: 'var(--bg-surface)',
+          width: 'min(440px, 90vw)',
+          height: 'min(280px, 55vw)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: 'var(--shadow-xs)',
-          marginBottom: '0.25rem',
-          overflow: 'hidden',
           position: 'relative',
+          overflow: 'visible',
+          margin: '-1rem 0 -0.5rem 0',
         }}>
           {mounted && (
             <Lottie
-              animationData={cameraAperture}
+              animationData={pictogram404}
               loop={true}
               autoplay={true}
-              style={{ width: '100%', height: '100%', transform: 'scale(4.2)', transformOrigin: 'center' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                transform: 'scale(1.5)',
+                transformOrigin: 'center',
+              }}
             />
           )}
         </div>
 
-        {/* Big 404 & Heading */}
+        {/* Heading & Description */}
         <div>
-          <span style={{
-            display: 'block',
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(4rem, 15vw, 6rem)',
-            fontWeight: 700,
-            lineHeight: 1,
-            color: 'var(--color-burnt-orange)',
-            letterSpacing: '-0.03em',
-            marginBottom: '0.5rem',
-            fontStyle: 'italic',
-          }}>
-            404
-          </span>
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(1.5rem, 5vw, 2.25rem)',
@@ -123,7 +111,7 @@ export default function NotFound() {
           </p>
         </div>
 
-        {/* Action Button: Ke Beranda only */}
+        {/* Action Button: Ke Beranda */}
         <div style={{
           display: 'flex',
           justifyContent: 'center',

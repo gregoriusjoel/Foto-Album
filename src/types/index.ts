@@ -30,6 +30,7 @@ export type EventCategory =
 
 export interface Event {
   id: string; // UUID exposed as "id"
+  uuid?: string;
   title: string;
   slug: string;
   description?: string | null;
