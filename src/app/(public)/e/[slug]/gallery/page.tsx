@@ -50,18 +50,18 @@ export default function GalleryPage() {
   // Selection & Mode States
   const [mode, setMode] = useState<'normal' | 'selection'>('normal');
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
-  
+
   // Context Menu & Info modal
   const [activeActionSheetPhoto, setActiveActionSheetPhoto] = useState<{ photo: Photo; index: number } | null>(null);
   const [actionSheetImageLoaded, setActionSheetImageLoaded] = useState(false);
   const [showInfoPhoto, setShowInfoPhoto] = useState<Photo | null>(null);
-  
+
   // ZIP Download Job State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [zipProgress, setZipProgress] = useState(0);
   const [zipError, setZipError] = useState<string | null>(null);
   const [zipPreparing, setZipPreparing] = useState(false);
-  
+
   // Long press timer refs
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -108,7 +108,7 @@ export default function GalleryPage() {
       }
       longPressedRef.current = true;
       setActiveActionSheetPhoto({ photo, index: idx });
-      
+
       // Reset card style
       card.style.transform = '';
       card.style.boxShadow = '';
@@ -123,7 +123,7 @@ export default function GalleryPage() {
     if (!touch) return;
     const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
     const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
-    
+
     // If user scrolls/moves, cancel selection/long press
     if (diffX > 10 || diffY > 10) {
       isMovingRef.current = true;
@@ -148,7 +148,7 @@ export default function GalleryPage() {
     card.style.transform = '';
     card.style.boxShadow = '';
     card.style.zIndex = '';
-    
+
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -219,11 +219,11 @@ export default function GalleryPage() {
 
   const handleLightboxTouchEnd = (e: React.TouchEvent) => {
     if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-    
+
     const touch = e.changedTouches[0];
     const diffX = touch.clientX - touchStartXRef.current;
     const diffY = touch.clientY - touchStartYRef.current;
-    
+
     // Swipe left (diffX < -50) -> next
     // Swipe right (diffX > 50) -> prev
     if (Math.abs(diffX) > Math.abs(diffY) * 1.5 && Math.abs(diffX) > 60) {
@@ -237,7 +237,7 @@ export default function GalleryPage() {
         }
       }
     }
-    
+
     touchStartXRef.current = null;
     touchStartYRef.current = null;
   };
@@ -249,7 +249,7 @@ export default function GalleryPage() {
       const response = await fetch(photo.original_url);
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-      
+
       const link = document.createElement('a');
       link.href = blobUrl;
       link.download = `Photo_${photo.id}.webp`;
@@ -298,7 +298,7 @@ export default function GalleryPage() {
       setZipPreparing(true);
       setZipProgress(5);
       setZipError(null);
-      
+
       const res = await api.post<{ data: { job_id: string } }>(
         `/public/events/${slug}/downloads`,
         { photo_uuids: selectedPhotoIds }
@@ -316,7 +316,7 @@ export default function GalleryPage() {
   const pollZipJob = (jobId: string) => {
     let progress = 5;
     setZipProgress(progress);
-    
+
     const interval = setInterval(async () => {
       try {
         // Visual indicator increments smoothly
@@ -325,14 +325,14 @@ export default function GalleryPage() {
 
         const res = await api.get<{ data: { status: string; download_url?: string; error?: string } }>(`/public/downloads/${jobId}`);
         const job = res.data.data;
-        
+
         if (job.status === 'ready' || job.status === 'completed') {
           clearInterval(interval);
           setZipProgress(100);
           setZipPreparing(false);
           setMode('normal');
           setSelectedPhotoIds([]);
-          
+
           const url = job.download_url;
           if (url) {
             toast.success('ZIP ready! Starting download...', { id: 'zip-dl' });
@@ -509,7 +509,7 @@ export default function GalleryPage() {
           return prev;
         });
       }
-    } catch {}
+    } catch { }
   };
 
   const loadWishes = async (p: number) => {
@@ -588,9 +588,9 @@ export default function GalleryPage() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!lightbox) return;
-      if (e.key === 'ArrowLeft')  lightboxNav(-1);
+      if (e.key === 'ArrowLeft') lightboxNav(-1);
       if (e.key === 'ArrowRight') lightboxNav(1);
-      if (e.key === 'Escape')     setLightbox(null);
+      if (e.key === 'Escape') setLightbox(null);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -662,23 +662,23 @@ export default function GalleryPage() {
                   <Camera size={14} color="var(--text-primary)" strokeWidth={2.5} />
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ 
-                    fontWeight: 800, 
-                    fontSize: '0.9375rem', 
-                    fontFamily: 'var(--font-display)', 
-                    textTransform: 'uppercase', 
-                    color: 'var(--text-primary)', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis', 
+                  <div style={{
+                    fontWeight: 800,
+                    fontSize: '0.9375rem',
+                    fontFamily: 'var(--font-display)',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-primary)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     maxWidth: '140px'
                   }}>
                     {event?.title ?? '…'}
                   </div>
-                  <div style={{ 
-                    fontSize: '0.6875rem', 
-                    fontFamily: 'var(--font-mono)', 
-                    textTransform: 'uppercase', 
+                  <div style={{
+                    fontSize: '0.6875rem',
+                    fontFamily: 'var(--font-mono)',
+                    textTransform: 'uppercase',
                     color: 'var(--text-muted)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -834,7 +834,7 @@ export default function GalleryPage() {
       )}
 
       <div className="container" style={{ paddingTop: '0', paddingBottom: '4rem' }}>
-        
+
         <div style={{
           display: 'flex', justifyContent: 'center', gap: '1rem',
           marginBottom: '2rem', borderBottom: '1px solid var(--border-color-medium)',
@@ -947,9 +947,9 @@ export default function GalleryPage() {
                               handleLike(photo, idx);
                             }}
                             style={{
-                              position: 'absolute', top: '2.25rem', right: '1rem',
-                              background: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
-                              border: 'none', borderRadius: '99px', padding: '0.25rem 0.5rem',
+                              position: 'absolute', top: '0.625rem', right: '0.625rem',
+                              background: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+                              border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '99px', padding: '0.25rem 0.625rem',
                               display: 'flex', alignItems: 'center', gap: '0.25rem',
                               cursor: 'pointer', zIndex: 10,
                               color: photo.liked ? '#f43f5e' : '#fff',
@@ -958,26 +958,28 @@ export default function GalleryPage() {
                             onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
                             onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                           >
-                            <Heart 
+                            <Heart
                               key={photo.liked ? 'liked' : 'unliked'}
-                              size={12} 
+                              size={12}
                               className={photo.liked ? 'heart-bounce-anim' : ''}
-                              fill={photo.liked ? '#f43f5e' : 'none'} 
-                              strokeWidth={2} 
+                              fill={photo.liked ? '#f43f5e' : 'none'}
+                              strokeWidth={2}
                             />
                             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
                               {photo.like_count}
                             </span>
                           </button>
                         )}
-                        
+
                         <div style={{
-                          position: 'absolute', bottom: '1.75rem', left: '0.5rem', right: '0.5rem',
-                          padding: '0.5rem 0.625rem',
-                          background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
+                          position: 'absolute', bottom: 0, left: 0, right: 0,
+                          padding: '1.5rem 0.625rem 0.625rem',
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
                           opacity: 0,
                           transition: 'opacity 0.2s',
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          borderBottomLeftRadius: 'var(--radius-md)',
+                          borderBottomRightRadius: 'var(--radius-md)',
                         }}
                           className="photo-caption"
                         >
@@ -994,8 +996,8 @@ export default function GalleryPage() {
                 {/* Load more */}
                 {hasMore && (
                   <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-                    <button 
-                      className="btn btn-secondary" 
+                    <button
+                      className="btn btn-secondary"
                       onClick={() => loadPhotos(page + 1, nextCursor)}
                       disabled={loadingMore}
                     >
@@ -1075,8 +1077,8 @@ export default function GalleryPage() {
 
                 {wishesHasMore && (
                   <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-                    <button 
-                      className="btn btn-secondary" 
+                    <button
+                      className="btn btn-secondary"
                       onClick={() => loadWishes(wishesPage + 1)}
                       disabled={wishesLoadingMore}
                     >
@@ -1111,9 +1113,9 @@ export default function GalleryPage() {
 
           {/* Image & Bottom Actions (iOS Style) */}
           <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100dvh', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-            
+
             {/* Fullscreen Image Container */}
-            <div 
+            <div
               onTouchStart={handleLightboxTouchStart}
               onTouchEnd={handleLightboxTouchEnd}
               style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: '1rem', position: 'relative' }}
@@ -1204,12 +1206,12 @@ export default function GalleryPage() {
                   onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.85)'}
                   onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  <Heart 
+                  <Heart
                     key={lightbox.photo.liked ? 'liked' : 'unliked'}
-                    size={20} 
+                    size={20}
                     className={lightbox.photo.liked ? 'heart-bounce-anim' : ''}
-                    fill={lightbox.photo.liked ? '#f43f5e' : 'none'} 
-                    strokeWidth={2} 
+                    fill={lightbox.photo.liked ? '#f43f5e' : 'none'}
+                    strokeWidth={2}
                   />
                   <span style={{ fontSize: '0.8125rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#fff' }}>
                     {lightbox.photo.like_count}
@@ -1286,7 +1288,7 @@ export default function GalleryPage() {
                   }} />
                 </div>
               )}
-              
+
               <img
                 src={activeActionSheetPhoto.photo.optimized_url}
                 alt=""
@@ -1327,7 +1329,7 @@ export default function GalleryPage() {
                 <span>Download</span>
                 <Download size={18} />
               </button>
-              
+
               <button
                 className="context-menu-item"
                 onClick={() => {
@@ -1398,11 +1400,11 @@ export default function GalleryPage() {
             >
               <X size={18} />
             </button>
-            
+
             <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Info size={18} color="var(--text-primary)" /> Detail Foto
             </h3>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.8125rem', fontFamily: 'var(--font-mono)' }}>
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
                 <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Nama File</span>
@@ -1413,7 +1415,7 @@ export default function GalleryPage() {
                   })()}
                 </span>
               </div>
-              
+
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.5rem' }}>
                 <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Pengunggah</span>
                 <span style={{ color: '#fff' }}>{showInfoPhoto.photographer ?? 'Guest'}</span>
@@ -1443,7 +1445,7 @@ export default function GalleryPage() {
                 </span>
               </div>
             </div>
-            
+
             <button
               className="btn btn-secondary"
               style={{ width: '100%', marginTop: '1.5rem', borderRadius: 'var(--radius-sm)' }}
@@ -1478,7 +1480,7 @@ export default function GalleryPage() {
             <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
               Unduh {selectedPhotoIds.length} Foto?
             </h3>
-            
+
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
               Foto pilihan Anda akan dikompresi menjadi berkas ZIP tunggal.<br />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', display: 'block', marginTop: '0.5rem', color: 'var(--text-primary)' }}>
@@ -1494,7 +1496,7 @@ export default function GalleryPage() {
               >
                 Batal
               </button>
-              
+
               <button
                 className="btn btn-primary"
                 style={{ flex: 1, borderRadius: 'var(--radius-sm)' }}
@@ -1528,7 +1530,7 @@ export default function GalleryPage() {
             <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
               Menyiapkan Unduhan...
             </h3>
-            
+
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
               Sedang mengompresi foto pilihan Anda di server. Jangan tutup halaman ini.
             </p>
@@ -1573,7 +1575,7 @@ export default function GalleryPage() {
             <h3 style={{ fontSize: '1.0625rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem' }}>
               Gagal Mengunduh
             </h3>
-            
+
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
               {zipError}
             </p>
@@ -1605,7 +1607,7 @@ export default function GalleryPage() {
           >
             Batal
           </button>
-          
+
           <button
             className="btn btn-primary"
             style={{
