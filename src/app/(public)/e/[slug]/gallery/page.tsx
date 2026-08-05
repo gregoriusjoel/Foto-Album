@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import Lottie from 'lottie-react';
 import likeHeartAnimation from '@/app/like-heart.json';
 import { ApertureLoader } from '@/components/ui/ApertureLoader';
@@ -418,6 +418,9 @@ export default function GalleryPage() {
       setPhotoCount(eventData.total_photos ?? 0);
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        notFound();
+      }
       if (status === 403) {
         router.replace(`/e/${slug}`);
       }

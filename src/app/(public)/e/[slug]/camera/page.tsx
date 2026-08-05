@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -172,10 +172,9 @@ export default function GuestCameraPage() {
       setLoading(false);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
-      // 404 means event is closed/archived (backend only serves published events publicly)
       if (status === 404) {
-        router.replace(`/e/${slug}/closed`);
-        return; // Keep loading=true, let redirect handle navigation
+        notFound();
+        return;
       }
       if (status === 403) {
         router.replace(`/e/${slug}`);

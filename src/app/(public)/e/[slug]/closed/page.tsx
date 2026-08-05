@@ -1,23 +1,47 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Camera, Heart, Image as ImageIcon, Users } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import type { Event } from '@/types';
+import { ApertureLoader } from '@/components/ui/ApertureLoader';
 
 export default function EventClosedPage() {
   const params = useParams();
   const slug = params.slug as string;
   const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isNotFound, setIsNotFound] = useState(false);
 
   useEffect(() => {
     api.get<{ data: Event }>(`/public/events/${slug}`)
-      .then((res) => setEvent(res.data.data))
-      .catch(() => {});
+      .then((res) => {
+        const ev = res.data.data;
+        if (ev.status === 'published') {
+          // If event is actually published and not closed, it should be in public view
+          setEvent(ev);
+        } else {
+          setEvent(ev);
+        }
+      })
+      .catch(() => {
+        setIsNotFound(true);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [slug]);
+
+  if (loading) {
+    return <ApertureLoader fullscreen text="Memuat..." />;
+  }
+
+  if (isNotFound || !event) {
+    notFound();
+  }
 
   return (
     <div style={{

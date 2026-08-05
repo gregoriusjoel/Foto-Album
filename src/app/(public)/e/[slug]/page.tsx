@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -109,7 +109,7 @@ export default function JoinPage() {
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [eventNotFound, setEventNotFound] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
@@ -149,10 +149,8 @@ export default function JoinPage() {
 
     api.get<{ data: Event }>(`/public/events/${slug}`).then((res) => {
       setEvent(res.data.data);
-    }).catch((err: unknown) => {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status === 404) { router.replace(`/e/${slug}/closed`); return; }
-      setNotFound(true);
+    }).catch(() => {
+      setEventNotFound(true);
     }).finally(() => { setLoading(false); });
   }, [slug, mounted]);
 
@@ -184,17 +182,8 @@ export default function JoinPage() {
     return <ApertureLoader fullscreen text="Menyiapkan Album..." />;
   }
 
-  if (notFound || !event) {
-    return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center', background: 'var(--bg-page)' }}>
-        <h1 style={{ fontSize: 'var(--font-display-l)', marginBottom: '1.5rem', fontFamily: 'var(--font-display)' }}>Exhibition Not Found</h1>
-        <p style={{ marginBottom: '2.5rem', color: 'var(--text-secondary)', maxWidth: '360px', fontWeight: 300 }}>This memory archive may have been closed or is temporarily unavailable.</p>
-        <Link href="/" style={{
-          padding: '0.75rem 2rem', border: 'var(--border-strong)', color: 'var(--text-primary)',
-          borderRadius: 'var(--radius-pill)', textDecoration: 'none', fontSize: 'var(--font-body)', fontWeight: 500
-        }}>Go Home</Link>
-      </div>
-    );
+  if (eventNotFound || !event) {
+    notFound();
   }
 
   if (event.status === 'closed' || event.status === 'archived') {

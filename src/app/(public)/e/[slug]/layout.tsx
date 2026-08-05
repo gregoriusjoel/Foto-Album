@@ -59,12 +59,25 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: {
+      canonical: pageUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+      },
+    },
     openGraph: {
       type: 'website',
       url: pageUrl,
       siteName: 'Memly',
       title: `${title} — Memly`,
       description,
+      locale: 'id_ID',
       ...(ogImage
         ? {
             images: [
@@ -87,10 +100,47 @@ export async function generateMetadata({
   };
 }
 
-export default function EventLayout({
+export default async function EventLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ slug: string }>;
 }) {
-  return <>{children}</>;
+  const { slug } = await params;
+  const event = await fetchEventOg(slug);
+
+  const eventJsonLd = event ? {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: event.title,
+    description: event.description || `Event photo archive for ${event.title}`,
+    startDate: event.event_date,
+    ...(event.venue ? {
+      location: {
+        '@type': 'Place',
+        name: event.venue,
+      },
+    } : {}),
+    ...(event.banner_photos?.[0] || event.thumbnail_url ? {
+      image: [event.banner_photos?.[0] || event.thumbnail_url],
+    } : {}),
+    organizer: {
+      '@type': 'Organization',
+      name: 'Memly',
+      url: 'https://memly.online',
+    },
+  } : null;
+
+  return (
+    <>
+      {eventJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+        />
+      )}
+      {children}
+    </>
+  );
 }

@@ -1,16 +1,43 @@
-import type { Metadata } from 'next';
-
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://memly.online';
+
+export const viewport: Viewport = {
+  themeColor: '#FAF8F4',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: {
     template: '%s | Memly',
-    default: 'Memly — A Home for Every Memory.',
+    default: 'Memly — Digital Memory Archives & Event Photo Albums',
   },
   description:
-    'Memly is a collaborative memory-preservation platform designed to help you capture, organize, and relive life\'s most meaningful moments.',
-  keywords: ['photo album', 'event photos', 'collaborative album', 'QR code photos', 'wedding photos', 'memory preservation', 'Memly'],
+    'Memly adalah platform dokumentasi & album foto bersama interaktif untuk acara pernikahan, ulang tahun, wisuda, dan momen spesial. Abadikan dan bagikan kenangan berharga bersama tamu.',
+  keywords: [
+    'Memly',
+    'album foto digital',
+    'foto event',
+    'foto wedding',
+    'shared photo album',
+    'album nikahan',
+    'QR foto event',
+    'galeri foto bersama',
+    'memory archives',
+    'foto bersama tamu',
+  ],
+  authors: [{ name: 'Memly Team', url: APP_URL }],
+  creator: 'Memly',
+  publisher: 'Memly',
+  formatDetection: { telephone: false },
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: '/logo-memly-white.png',
     shortcut: '/logo-memly-white.png',
@@ -18,11 +45,39 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
+    locale: 'id_ID',
+    url: APP_URL,
     siteName: 'Memly',
-    title: 'Memly — A Home for Every Memory.',
-    description: 'A living archive of life\'s most meaningful moments.',
+    title: 'Memly — Digital Memory Archives & Event Photo Albums',
+    description:
+      'Abadikan dan bagikan kenangan berharga di acara pernikahan, ulang tahun, dan momen spesial Anda bersama seluruh tamu.',
+    images: [
+      {
+        url: '/logo-memly.png',
+        width: 1200,
+        height: 630,
+        alt: 'Memly — Digital Memory Archives',
+      },
+    ],
   },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Memly — Digital Memory Archives',
+    description:
+      'Platform album foto digital bersama untuk acara pernikahan, ulang tahun, dan momen berharga Anda.',
+    images: ['/logo-memly.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -30,12 +85,25 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Memly',
+    url: APP_URL,
+    description: 'Digital Memory Archives & Event Photo Albums',
+    inLanguage: 'id-ID',
+  };
+
   return (
     <html lang="id" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Lora:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body>
         {children}
